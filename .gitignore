@@ -1,0 +1,10 @@
+# Workspace folders
+.idea
+
+# Terraform build folder and files
+terraform/aws/.terraform
+terraform/aws/.plugin-cache
+
+*.tfstate*
+*.tfvars
+
