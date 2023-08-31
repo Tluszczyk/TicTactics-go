@@ -1,5 +1,5 @@
 <div style="text-align:center; margin: 100px;">
-    <img src="./resources/logo.png"/>
+    <img src="documentation/resources/logo.png" alt=""/>
 </div>
 
 # TicTactics
@@ -11,9 +11,9 @@ This project is an attempt to recreate the game.
 
 A high level architecture diagram of the service is shown below.
 
-<center>
-    <img src="./resources/HighLevelArchitecture.svg"/>
-</center>
+<div style="text-align: center;">
+    <img src="documentation/resources/HighLevelArchitecture.svg" alt=""/>
+</div>
 
 Below is a description of the components of the service.
 
@@ -22,7 +22,7 @@ This component is responsible for handling all input and output to and from the 
 
 It will be deployed as a REST API with the following endpoint groups:
 
-<center>
+<div style="text-align: center;">
 
 | Endpoint          | Description               |
 | -                 | -                         |
@@ -30,11 +30,11 @@ It will be deployed as a REST API with the following endpoint groups:
 | `/user`           | User management endpoints |
 | `/game`           | Game management endpoints |
 
-</center>
+</div>
 
 #### Authentication Endpoints
 
-<center>
+<div style="text-align: center;">
 
 | Endpoint          | Description               |
 | -                 | -                         |
@@ -43,21 +43,21 @@ It will be deployed as a REST API with the following endpoint groups:
 | `/auth/logout`    | Logout a user             |
 | `/auth/validate`  | Validate a user's session |
 
-</center>
+</div>
 
 #### User Management Endpoints
 
-<center>
+<div style="text-align: center;">
 
 | Endpoint          | Description               |
 | -                 | -                         |
 | `/user/profile`   | Get a user's profile      |
 
-</center>
+</div>
 
 #### Game Management Endpoints
 
-<center>
+<div style="text-align: center;">
 
 | Endpoint          | Description               |
 | -                 | -                         |
@@ -66,7 +66,7 @@ It will be deployed as a REST API with the following endpoint groups:
 | `/game/leave`     | Leave a game              |
 | `/game/move`      | Make a move in a game     |
 
-</center>
+</div>
 
 ### Auth
 ### User Manager
