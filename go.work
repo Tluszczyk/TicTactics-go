@@ -1,6 +1,5 @@
-go 1.21.0
+go 1.21.1
 
-use (
-	./services
-	services/AuthorisationService/cmd
-)
+use ./services
+use ./services/UserManagementService
+use ./services/DatabaseService
