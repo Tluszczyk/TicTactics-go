@@ -1,0 +1,695 @@
+openapi: 3.0.3
+info:
+    title: TicTactics API
+    version: 1.0.0
+    description: TicTactics API
+tags:
+  - name: auth
+    description: Authentication Service
+  - name: user
+    description: User Management Service
+  - name: game
+    description: Game Management Service
+paths:
+    /user:
+        post:
+            tags:
+              - user
+            summary: Create new user
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+            x-amazon-apigateway-integration:
+                uri: ${user_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+        get:
+            tags:
+              - user
+            summary: Get user
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GetUserRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+            x-amazon-apigateway-integration:
+                uri: ${user_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+        delete:
+            tags:
+              - user
+            summary: Delete user
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeleteUserRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteUserResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteUserResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteUserResponse'
+            x-amazon-apigateway-integration:
+                uri: ${user_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+
+    /auth/session:
+        get:
+            tags:
+                - auth
+            summary: Validate session
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ValidateSessionRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidateSessionResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidateSessionResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidateSessionResponse'
+            x-amazon-apigateway-integration:
+                uri: ${authentication_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+        post:
+            tags:
+                - auth
+            summary: Create new session
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateSessionRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateSessionResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateSessionResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateSessionResponse'
+            x-amazon-apigateway-integration:
+                uri: ${authentication_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+        delete:
+            tags:
+                - auth
+            summary: Delete session
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeleteSessionRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteSessionResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteSessionResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteSessionResponse'
+            x-amazon-apigateway-integration:
+                uri: ${authentication_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+
+    /game/create:
+        post:
+            tags:
+                - game
+            summary: Create new game
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateGameRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateGameResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateGameResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateGameResponse'
+            x-amazon-apigateway-integration:
+                uri: ${game_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+    /game/join:
+        put:
+            tags:
+            - game
+            summary: Joins new game
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/JoinGameRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/JoinGameResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/JoinGameResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/JoinGameResponse'
+            x-amazon-apigateway-integration:
+                uri: ${game_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+    /game/leave:
+        put:
+            tags:
+            - game
+            summary: Leave game
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LeaveGameRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaveGameResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaveGameResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaveGameResponse'
+            x-amazon-apigateway-integration:
+                uri: ${game_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+    /game:
+        get:
+            tags:
+            - game
+            summary: Get game
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GetGameRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetGameResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetGameResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetGameResponse'
+            x-amazon-apigateway-integration:
+                uri: ${game_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+        put:
+            tags:
+            - game
+            summary: Update game
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateGameRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateGameResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateGameResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateGameResponse'
+            x-amazon-apigateway-integration:
+                uri: ${game_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+    /game/list-games:
+        get:
+            tags:
+            - game
+            summary: List games
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ListGamesRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListGamesResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListGamesResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListGamesResponse'
+            x-amazon-apigateway-integration:
+                uri: ${game_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
+components:
+    schemas:
+        Status:
+            type: object
+            properties:
+                message:
+                    type: string
+
+        Credentials:
+            type: object
+            properties:
+                username:
+                    type: string
+                passwordHash:
+                    type: string
+                    description: SHA256 hash of the password
+
+        Session:
+            type: object
+            properties:
+                token:
+                    type: string
+                uid:
+                    type: string
+                    
+        User:
+            type: object
+            properties:
+                uid:
+                    type: string
+                username:
+                    type: string
+                elo:
+                    type: integer
+
+        CreateUserRequest:
+            type: object
+            properties:
+                Credentials:
+                    $ref: '#/components/schemas/Credentials'
+            description: Create user request
+
+        CreateUserResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Create user response
+
+        GetUserRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                username:
+                    type: string
+            description: Get user request
+        
+        GetUserResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+                User:
+                    $ref: '#/components/schemas/User'
+            description: Get user response
+
+        DeleteUserRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                uid:
+                    type: string
+            description: Delete user request
+
+        DeleteUserResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Delete user response
+
+        ValidateSessionRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+            description: Validate session request
+        
+        ValidateSessionResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Validate session response
+
+        CreateSessionRequest:
+            type: object
+            properties:
+                Credentials:
+                    $ref: '#/components/schemas/Credentials'
+            description: Create session request
+
+        CreateSessionResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+                Session:
+                    $ref: '#/components/schemas/Session'
+            description: Create session response
+
+        DeleteSessionRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+            description: Delete session request
+
+        DeleteSessionResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Delete session response
+
+        Game:
+            type: object
+            properties:
+                gid:
+                    type: string
+                uid1:
+                    type: string
+                uid2:
+                    type: string
+                board:
+                    type: string
+                turn:
+                    type: string
+                winner:
+                    type: string
+                moveHistory:
+                    type: string
+                availableMoves:
+                    type: string
+
+        GameSettings:
+            type: object
+
+        GamesFilter:
+            type: object
+            properties:
+                OPlayerUsername:
+                    type: string
+                XPlayerUsername:
+                    type: string
+                turn:
+                    type: string
+                winner:
+                    type: string
+
+        CreateGameRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                Settings:
+                    $ref: '#/components/schemas/GameSettings'
+            description: Create game request
+
+        CreateGameResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Create game response
+
+        JoinGameRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                gid:
+                    type: string
+            description: Join game request
+        
+        JoinGameResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Join game response
+
+        LeaveGameRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                gid:
+                    type: string
+            description: Leave game request
+        
+        LeaveGameResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Leave game response
+
+        GetGameRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                gid:
+                    type: string
+            description: Get game request
+
+        GetGameResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+                Game:
+                    $ref: '#/components/schemas/Game'
+            description: Get game response
+
+        UpdateGameRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                gid:
+                    type: string
+                move:
+                    type: string
+            description: Update game request
+        
+        UpdateGameResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Update game response
+        
+        ListGamesRequest:
+            type: object
+            properties:
+                Session:
+                    $ref: '#/components/schemas/Session'
+                Filter:
+                    $ref: '#/components/schemas/GamesFilter'
+            description: List games request
+        
+        ListGamesResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+                Games:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Game'
+            description: List games response
