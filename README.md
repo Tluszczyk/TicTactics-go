@@ -17,43 +17,56 @@ A high level architecture diagram of the service is shown below.
 
 Below is a description of the components of the service.
 
-### IO
-This component is responsible for handling all input and output to and from the service. Depending on the type of request, it will forward the request to the appropriate component.
-
+### API
 It will be deployed as a REST API with the following endpoint groups:
 
-| Endpoint          | Description               |
-| -                 | -                         |
-| `/auth`           | Authentication endpoints  |
-| `/user`           | User management endpoints |
-| `/game`           | Game management endpoints |
+| Endpoint | Description               |
+|----------|---------------------------|
+| `/auth`  | Authentication endpoints  |
+| `/user`  | User management endpoints |
+| `/game`  | Game management endpoints |
 
 #### Authentication Endpoints
 
-| Endpoint          | Description               |
-| -                 | -                         |
-| `/auth/register`  | Register a new user       |
-| `/auth/login`     | Login a user              |
-| `/auth/logout`    | Logout a user             |
-| `/auth/validate`  | Validate a user's session |
+| Endpoint         | Method | Description        |
+|------------------|------  |--------------------|
+| `/auth/session`  | GET    | Validate a session |
+|                  | POST   | Create a session   |
+|                  | DELETE | Remove session     |
 
 #### User Management Endpoints
 
-| Endpoint          | Description               |
-| -                 | -                         |
-| `/user/profile`   | Get a user's profile      |
+| Endpoint | Method | Description      |
+|----------|------  |------------------|
+| `/user`  | GET    | Get a user       |
+|          | POST   | Create a session |
 
 #### Game Management Endpoints
 
-| Endpoint          | Description               |
-| -                 | -                         |
-| `/game/create`    | Create a new game         |
-| `/game/join`      | Join an existing game     |
-| `/game/leave`     | Leave a game              |
-| `/game/move`      | Make a move in a game     |
+| Endpoint           | Method | Description      |
+|--------------------|--------|------------------|
+| `/game/create`     | POST   | Create a game    |
+| `/game/join`       | PUT    | Join a game      |
+| `/game/leave`      | PUT    | Leave a game     |
+| `/game/list-games` | GET    | List games       |
+| `/game`            | GET    | Get a game       |
+|                    | PUT    | Update a game    |
 
-### Auth
-### User Manager
-### Game Manager
-### Game Logic
-### Databse
+### Database
+The database will follow this relationship schema:
+
+<div style="text-align: center;">
+    <img src="documentation/resources/Database.svg" alt=""/>
+</div>
+
+Since one of the implementation options is DynamoDB, before designing the database, it is important to understand the [data model](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html#HowItWorks.CoreComponents.DataModel) of DynamoDB and how to [model relationships](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-modeling-nosql-B.html) between entities. First we have to describe the access patterns that will occur.
+
+#### User Access Patterns
+TODO
+
+#### Password Access Patterns
+TODO
+
+#### Game Access Patterns
+TODO
+
