@@ -1,10 +1,11 @@
 # Workspace folders
 .idea
+.vscode
 
-# Terraform build folder and files
+# Terraform build folder
 terraform/aws/.terraform
 terraform/aws/.plugin-cache
 
+# Terraform state files
 *.tfstate*
-*.tfvars
-
+.terraform.lock.hcl
