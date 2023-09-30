@@ -1,4 +1,5 @@
 <div style="text-align:center; margin: 100px;">
+![Coverage](https://img.shields.io/badge/Coverage-67.4%25-yellow)
     <img src="documentation/resources/logo.png" alt=""/>
 </div>
 
