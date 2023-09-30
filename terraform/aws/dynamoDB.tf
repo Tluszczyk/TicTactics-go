@@ -1,34 +1,34 @@
 resource "aws_dynamodb_table" "this" {
-	name           = "example_table"
+	name           = "TicTactics"
 	billing_mode   = "PAY_PER_REQUEST"
-	hash_key       = "id"
-	stream_enabled = true
+	hash_key       = "PK"
 
 	attribute {
-		name = "id"
+		name = "PK"
 		type = "S"
 	}
 
 	attribute {
-		name = "username"
+		name = "SK"
 		type = "S"
 	}
 
 	attribute {
-		name = "game_id"
+		name = "GSI1PK"
 		type = "S"
 	}
 
 	attribute {
-		name = "password"
+		name = "GSI1SK"
 		type = "S"
 	}
 
 	global_secondary_index {
-		name               = "username-index"
-		hash_key           = "username"
-		projection_type    = "ALL"
-		write_capacity     = 1
-		read_capacity      = 1
-	}
+        name               = "GSI1"
+        hash_key           = "GSI1PK"
+        range_key          = "GSI1SK"
+        projection_type    = "ALL"
+        write_capacity     = 1
+        read_capacity      = 1
+    }
 }
