@@ -1,0 +1,16 @@
+name: Verify commit
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Update coverage badge
+    steps:
+      - name: Go Coverage Badge
+        uses: tj-actions/coverage-badge-go@v2.4.1
+            
+            
