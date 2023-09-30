@@ -1,3 +1,3 @@
-module github.com/Tluszczyk/TicTactics
+module server
 
 go 1.21.0
