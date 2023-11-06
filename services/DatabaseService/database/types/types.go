@@ -1,6 +1,77 @@
 package types
 
-type DatabaseItem map[string]interface{}
+type FieldType string
 
-type DatabaseQuery map[string]interface{}
-type DatabaseQueryResult []DatabaseItem
+const (
+	USERNAME      FieldType = "USER"
+	UID           FieldType = "UID"
+	EMAIL         FieldType = "EMAIL"
+	HASH_ID       FieldType = "HID"
+	PASSWORD_HASH FieldType = "PHASH"
+	ELO           FieldType = "ELO"
+)
+
+type DatabaseItem struct {
+	PK         map[FieldType]interface{}
+	SK         map[FieldType]interface{}
+	Attributes map[FieldType]interface{}
+}
+
+func NewDatabaseItem() *DatabaseItem {
+	return &DatabaseItem{
+		PK:         make(map[FieldType]interface{}),
+		SK:         make(map[FieldType]interface{}),
+		Attributes: make(map[FieldType]interface{}),
+	}
+}
+
+func (d *DatabaseItem) IsNil() bool {
+	return len(d.PK) == 0 && len(d.SK) == 0 && len(d.Attributes) == 0
+}
+
+type DatabaseQuery DatabaseItem
+
+// Inputs
+type DatabaseGetItemInput struct {
+	TableName string
+	Key       DatabaseItem
+}
+
+type DatabasePutItemInput struct {
+	TableName string
+	Item      DatabaseItem
+}
+
+type DatabaseDeleteItemInput struct {
+	TableName string
+	Key       DatabaseItem
+}
+
+type DatabaseUpdateItemInput struct {
+	TableName string
+	Key       DatabaseItem
+	Item      DatabaseItem
+}
+
+type DatabaseQueryInput struct {
+	TableName string
+	Query     DatabaseQuery
+}
+
+// Outputs
+type DatabaseGetItemOutput struct {
+	Item DatabaseItem
+}
+
+type DatabasePutItemOutput struct {
+}
+
+type DatabaseDeleteItemOutput struct {
+}
+
+type DatabaseUpdateItemOutput struct {
+}
+
+type DatabaseQueryOutput struct {
+	Items []DatabaseItem
+}
