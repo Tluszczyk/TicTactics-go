@@ -7,6 +7,16 @@ type ErrorResponse struct {
 	Details string `json:"details"`
 }
 
+type Request struct {
+	Body       string `json:"body"`
+	HTTPMethod string `json:"httpMethod"`
+}
+
+type Response struct {
+	Body       interface{} `json:"body"`
+	StatusCode int         `json:"statusCode"`
+}
+
 type Code int
 
 const (

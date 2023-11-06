@@ -1,35 +1,25 @@
 package main
 
 import (
-	"net/http"
+	"services/lib"
+	"services/lib/types"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	response, err := HandleRequest(types.Request{
+		HTTPMethod: request.HTTPMethod,
+		Body:       request.Body,
+	})
 
-	switch request.HTTPMethod {
-	case "GET":
-		return HandleGet(request)
-
-	case "POST":
-		return HandlePost(request)
-
-	case "PUT":
-		return HandlePut(request)
-
-	case "DELETE":
-		return HandleDelete(request)
-
-	default:
-		return events.APIGatewayProxyResponse{
-			Body:       "Method not allowed",
-			StatusCode: http.StatusMethodNotAllowed,
-		}, nil
-	}
+	return lib.CreateApiResponse(
+		response.StatusCode,
+		response.Body,
+	), err
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	lambda.Start(handler)
 }

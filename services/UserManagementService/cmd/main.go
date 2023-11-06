@@ -1,45 +1,29 @@
 package main
 
 import (
-	"net/http"
-	"os"
-
-	"services/DatabaseService/database"
-
 	"services/lib"
+	"services/lib/log"
+	"services/lib/types"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// Get environment variables
-	databaseDeploymentOption, err := database.ParseDatabaseDeploymentOption(os.Getenv("DATABASE_DEPLOYMENT_OPTION"))
-	if err != nil {
-		return lib.CreateApiResponse(http.StatusInternalServerError, "Error parsing database deployment option"), err
-	}
+func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	// Get database service
-	databaseService, err := database.GetDatabaseService(databaseDeploymentOption)
-	if err != nil {
-		return lib.CreateApiResponse(http.StatusInternalServerError, "Error getting database service"), err
-	}
+	log.Info("Started UserManagementService")
 
-	switch request.HTTPMethod {
-	case "GET":
-		return HandleGetRequest(databaseService, request)
+	response, err := HandleRequest(types.Request{
+		Body:       request.Body,
+		HTTPMethod: request.HTTPMethod,
+	})
 
-	case "POST":
-		return HandlePostRequest(databaseService, request)
-
-	default:
-		return events.APIGatewayProxyResponse{
-			Body:       "Method not allowed",
-			StatusCode: http.StatusMethodNotAllowed,
-		}, nil
-	}
+	return lib.CreateApiResponse(
+		response.StatusCode,
+		response.Body,
+	), err
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	lambda.Start(handler)
 }
