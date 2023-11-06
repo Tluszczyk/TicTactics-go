@@ -5,16 +5,19 @@ import (
 	"services/lib/log"
 	"services/lib/types"
 
+	"services/UserManagementService/cmd"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Info("Started GameManagementService")
 
-	response, err := HandleRequest(types.Request{
-		HTTPMethod: request.HTTPMethod,
+	log.Info("Started UserManagementService")
+
+	response, err := cmd.HandleRequest(types.Request{
 		Body:       request.Body,
+		HTTPMethod: request.HTTPMethod,
 	})
 
 	return lib.CreateApiResponse(

@@ -7,7 +7,7 @@ lambdas=()
 for d in *Service/ ; do
     cd ./$d
 
-    if [ -e cmd/ ]; then
+    if [ -e lambda/ ]; then
         lambdas+=($d)
     fi
 
@@ -20,7 +20,7 @@ echo "$lambdas_count lambdas found: ${lambdas[@]}"
 for (( i=0; i<$lambdas_count; i++ )); do
     lambda=${lambdas[$i]}
 
-    cd $lambda/cmd
+    cd $lambda/lambda
     echo "Building $lambda lambda"
 
     lambda_name=${lambda/Service\//Lambda}.zip

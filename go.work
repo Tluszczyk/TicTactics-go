@@ -2,6 +2,8 @@ go 1.21.1
 
 use ./services
 
+use ./services/IOService
+
 use ./services/UserManagementService
 
 use ./services/DatabaseService
