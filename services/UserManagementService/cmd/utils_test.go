@@ -2,13 +2,10 @@ package main
 
 import (
 	"errors"
-	"reflect"
 	"services/DatabaseService/database"
 	databaseTypes "services/DatabaseService/database/types"
 	messageTypes "services/lib/types"
 	"testing"
-
-	"github.com/google/uuid"
 )
 
 type mockDatabaseService struct {
@@ -18,24 +15,46 @@ type mockDatabaseService struct {
 	err         error
 }
 
-func (m mockDatabaseService) GetItemFromDatabase(tableName string, itemID string) (databaseTypes.DatabaseItem, error) {
-	return databaseTypes.DatabaseItem{}, nil
+func (m mockDatabaseService) GetItemFromDatabase(input *databaseTypes.DatabaseGetItemInput) (*databaseTypes.DatabaseGetItemOutput, error) {
+	var item databaseTypes.DatabaseItem
+
+	if m.queryResult == nil {
+		return nil, m.err
+	}
+
+	if len(m.queryResult) > 0 {
+		item = m.queryResult[0]
+	} else {
+		item = databaseTypes.DatabaseItem{}
+	}
+
+	return &databaseTypes.DatabaseGetItemOutput{
+		Item: item,
+	}, nil
 }
 
-func (m mockDatabaseService) PutItemInDatabase(tableName string, itemID string, item databaseTypes.DatabaseItem) error {
-	return m.err
+func (m mockDatabaseService) PutItemInDatabase(input *databaseTypes.DatabasePutItemInput) (*databaseTypes.DatabasePutItemOutput, error) {
+	return &databaseTypes.DatabasePutItemOutput{}, m.err
 }
 
-func (m mockDatabaseService) DeleteItemFromDatabase(tableName string, itemID string) error {
-	return m.err
+func (m mockDatabaseService) DeleteItemFromDatabase(input *databaseTypes.DatabaseDeleteItemInput) (*databaseTypes.DatabaseDeleteItemOutput, error) {
+	return &databaseTypes.DatabaseDeleteItemOutput{}, m.err
 }
 
-func (m mockDatabaseService) UpdateItemInDatabase(tableName string, itemID string, item databaseTypes.DatabaseItem) error {
-	return m.err
+func (m mockDatabaseService) UpdateItemInDatabase(input *databaseTypes.DatabaseUpdateItemInput) (*databaseTypes.DatabaseUpdateItemOutput, error) {
+	return &databaseTypes.DatabaseUpdateItemOutput{}, m.err
 }
 
-func (m mockDatabaseService) QueryDatabase(tableName string, query databaseTypes.DatabaseQuery) (databaseTypes.DatabaseQueryResult, error) {
-	return m.queryResult, m.err
+func (m mockDatabaseService) QueryDatabase(input *databaseTypes.DatabaseQueryInput) (*databaseTypes.DatabaseQueryOutput, error) {
+	return &databaseTypes.DatabaseQueryOutput{
+		Items: m.queryResult,
+	}, m.err
+}
+
+type databaseError struct{}
+
+func (d databaseError) Error() string {
+	return "database error"
 }
 
 func TestCheckIfUserAlreadyExists(t *testing.T) {
@@ -50,9 +69,9 @@ func TestCheckIfUserAlreadyExists(t *testing.T) {
 			name: "user exists",
 			databaseResult: []databaseTypes.DatabaseItem{
 				{
-					"uid":      uuid.New().String(),
-					"username": "testuser",
-					"hash_id":  uuid.New().String(),
+					PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.EMAIL: "test@test.com"},
+					SK:         map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: "123546"},
+					Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.PASSWORD_HASH: "testhash"},
 				},
 			},
 			databaseErr:    nil,
@@ -69,9 +88,9 @@ func TestCheckIfUserAlreadyExists(t *testing.T) {
 		{
 			name:           "database error",
 			databaseResult: nil,
-			databaseErr:    errors.New("database error"),
+			databaseErr:    databaseError{},
 			expectedResult: false,
-			expectedErr:    errors.New("database error"),
+			expectedErr:    databaseError{},
 		},
 	}
 
@@ -82,13 +101,17 @@ func TestCheckIfUserAlreadyExists(t *testing.T) {
 				err:         test.databaseErr,
 			}
 
-			result, err := CheckIfUserAlreadyExists(mockDB, "users", "testuser")
+			result, err := CheckIfUserAlreadyExists(mockDB, "users", messageTypes.Credentials{
+				Username:     "testuser",
+				Email:        "test@test.com",
+				PasswordHash: "testhash",
+			})
 
 			if result != test.expectedResult {
 				t.Errorf("expected %v, but got %v", test.expectedResult, result)
 			}
 
-			if !reflect.DeepEqual(err, test.expectedErr) {
+			if !errors.Is(err, test.expectedErr) {
 				t.Errorf("expected %v, but got %v", test.expectedErr, err)
 			}
 		})
@@ -108,8 +131,8 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			name:        "database error",
-			databaseErr: errors.New("database error"),
-			expectedErr: errors.New("database error"),
+			databaseErr: databaseError{},
+			expectedErr: databaseError{},
 		},
 	}
 
@@ -127,7 +150,7 @@ func TestCreateUser(t *testing.T) {
 
 			err := CreateUser(mockDB, "users", "password_hashes", credentials)
 
-			if !reflect.DeepEqual(err, test.expectedErr) {
+			if !errors.Is(err, test.expectedErr) {
 				t.Errorf("expected %v, but got %v", test.expectedErr, err)
 			}
 		})

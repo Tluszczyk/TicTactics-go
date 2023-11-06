@@ -4,16 +4,16 @@ resource "aws_lambda_function" "user_management_service" {
   filename          = format("%s/UserManagementLambda.zip", var.files_path)
   function_name     = "UserManagementLambda"
   role              = aws_iam_role.user_management_service.arn
-  handler           = "main"
+  handler           = "bootstrap"
   timeout           = 30
   memory_size       = 512
-  runtime           = "go1.x"
+  runtime           = "provided.al2"
 
   environment {
     variables = {
-      USERS_TABLE_NAME = aws_dynamodb_table.users.name,
-      PASSWORDHASH_TABLE_NAME = aws_dynamodb_table.passwordhash.name,
-      DATABASE_DEPLOYMENT_OPTION = var.database_deployment_option,
+      USERS_TABLE_NAME = aws_dynamodb_table.this.name,
+      PASSWORDHASH_TABLE_NAME = aws_dynamodb_table.this.name,
+      ENDPOINT_URL = var.endpoint_url
     }
   }
 }
@@ -40,10 +40,10 @@ resource "aws_lambda_function" "authentication_service" {
   filename          = format("%s/AuthenticationLambda.zip", var.files_path)
   function_name     = "AuthenticationLambda"
   role              = aws_iam_role.authentication_service.arn
-  handler           = "main"
+  handler           = "bootstrap"
   timeout           = 30
   memory_size       = 512
-  runtime           = "go1.x"
+  runtime           = "provided.al2"
 }
 
 resource "aws_iam_role" "authentication_service" {
@@ -68,10 +68,10 @@ resource "aws_lambda_function" "game_management_service" {
   filename          = format("%s/GameManagementLambda.zip", var.files_path)
   function_name     = "GameManagementLambda"
   role              = aws_iam_role.game_management_service.arn
-  handler           = "main"
+  handler           = "bootstrap"
   timeout           = 30
   memory_size       = 512
-  runtime           = "go1.x"
+  runtime           = "provided.al2"
 }
 
 resource "aws_iam_role" "game_management_service" {

@@ -9,11 +9,15 @@ import (
 )
 
 // CheckIfUserAlreadyExists checks if a user already exists in the database
-func CheckIfUserAlreadyExists(databaseService database.DatabaseService, usersTableName string, username string) (bool, error) {
-	queryResult, err := databaseService.QueryDatabase(
-		usersTableName,
-		databaseTypes.DatabaseQuery{
-			"username": username,
+func CheckIfUserAlreadyExists(databaseService database.DatabaseService, usersTableName string, credentials messageTypes.Credentials) (bool, error) {
+	item, err := databaseService.GetItemFromDatabase(
+		&databaseTypes.DatabaseGetItemInput{
+			TableName: usersTableName,
+			Key: databaseTypes.DatabaseItem{
+				PK: map[databaseTypes.FieldType]interface{}{
+					databaseTypes.EMAIL: credentials.Email,
+				},
+			},
 		},
 	)
 
@@ -21,7 +25,7 @@ func CheckIfUserAlreadyExists(databaseService database.DatabaseService, usersTab
 		return false, err
 	}
 
-	return len(queryResult) > 0, nil
+	return !item.Item.IsNil(), nil
 }
 
 // CreateUser saves user's credentials to the database
@@ -33,23 +37,39 @@ func CreateUser(databaseService database.DatabaseService, usersTableName string,
 	hashID := uuid.New().String()
 
 	// Save password hash
-	putItemRequest := databaseTypes.DatabaseItem{
-		"hash_id": hashID,
-		"hash":    credentials.PasswordHash,
+	item := databaseTypes.DatabaseItem{
+		PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.EMAIL: credentials.Email},
+		SK:         map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: hashID},
+		Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.PASSWORD_HASH: credentials.PasswordHash},
 	}
-	err := databaseService.PutItemInDatabase(passwordHashesTableName, hashID, putItemRequest)
+
+	putItemInput := databaseTypes.DatabasePutItemInput{
+		TableName: passwordHashesTableName,
+		Item:      item,
+	}
+
+	_, err := databaseService.PutItemInDatabase(&putItemInput)
 
 	if err != nil {
 		return err
 	}
 
 	// Save user
-	putItemRequest = databaseTypes.DatabaseItem{
-		"uid":      uid,
-		"username": credentials.Username,
-		"hash_id":  hashID,
+	item = databaseTypes.DatabaseItem{
+		PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		SK: map[databaseTypes.FieldType]interface{}{databaseTypes.USERNAME: credentials.Username},
+		Attributes: map[databaseTypes.FieldType]interface{}{
+			databaseTypes.EMAIL: credentials.Email,
+			databaseTypes.ELO:   "1000",
+		},
 	}
-	err = databaseService.PutItemInDatabase(usersTableName, uid, putItemRequest)
+
+	putItemInput = databaseTypes.DatabasePutItemInput{
+		TableName: usersTableName,
+		Item:      item,
+	}
+
+	_, err = databaseService.PutItemInDatabase(&putItemInput)
 
 	if err != nil {
 		return err
