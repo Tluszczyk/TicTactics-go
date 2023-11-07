@@ -22,6 +22,12 @@ type DatabaseService interface {
 
 	// QueryDatabase queries the database with the given query
 	QueryDatabase(*types.DatabaseQueryInput) (*types.DatabaseQueryOutput, error)
+
+	// MarshallDatabaseItem marshalls a DatabaseItem into a database-specific item
+	MarshallDatabaseItem(*types.DatabaseItem) (interface{}, error)
+
+	// UnmarshallDatabaseItem unmarshalls a database-specific item into a DatabaseItem
+	UnmarshallDatabaseItem(interface{}, *types.DatabaseItem) error
 }
 
 // GetDatabaseService returns a DatabaseService based on the given deployment option

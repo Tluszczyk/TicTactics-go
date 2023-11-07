@@ -3,13 +3,17 @@ package dynamo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"services/DatabaseService/database/types"
+	databaseTypes "services/DatabaseService/database/types"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dynamoTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type DynamoDatabaseService struct {
@@ -52,10 +56,15 @@ func (d *DynamoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItem
 	tableName, key := input.TableName, input.Key
 
 	// Marshal key
-	av, err := MarshallDatabaseItem(key)
-
+	marshalled, err := d.MarshallDatabaseItem(&key)
 	if err != nil {
 		return nil, err
+	}
+
+	// Assert marshalled key is of type map[string]dynamoTypes.AttributeValue
+	av, ok := marshalled.(map[string]dynamoTypes.AttributeValue)
+	if !ok {
+		return nil, errors.New("marshalled key is not of type map[string]dynamoTypes.AttributeValue")
 	}
 
 	// Create get item input
@@ -73,7 +82,7 @@ func (d *DynamoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItem
 
 	// Unmarshal result
 	var item types.DatabaseItem
-	err = UnmarshallDatabaseItem(result.Item, &item)
+	err = d.UnmarshallDatabaseItem(result.Item, &item)
 
 	if err != nil {
 		return nil, err
@@ -87,11 +96,16 @@ func (d *DynamoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItem
 func (d *DynamoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemInput) (*types.DatabasePutItemOutput, error) {
 	tableName, item := input.TableName, input.Item
 
-	// Marshal item
-	av, err := attributevalue.MarshalMap(item)
-
+	// Marshal key
+	marshalled, err := d.MarshallDatabaseItem(&item)
 	if err != nil {
 		return nil, err
+	}
+
+	// Assert marshalled key is of type map[string]dynamoTypes.AttributeValue
+	av, ok := marshalled.(map[string]dynamoTypes.AttributeValue)
+	if !ok {
+		return nil, errors.New("marshalled key is not of type map[string]dynamoTypes.AttributeValue")
 	}
 
 	// Create put item input
@@ -120,4 +134,64 @@ func (d *DynamoDatabaseService) UpdateItemInDatabase(input *types.DatabaseUpdate
 
 func (d *DynamoDatabaseService) QueryDatabase(input *types.DatabaseQueryInput) (*types.DatabaseQueryOutput, error) {
 	return nil, errors.New("not implemented")
+}
+
+func (d *DynamoDatabaseService) MarshallDatabaseItem(item *databaseTypes.DatabaseItem) (interface{}, error) {
+	result, err := attributevalue.MarshalMap(item.Attributes)
+
+	if err != nil {
+		return nil, err
+	}
+
+	PK, SK := "", ""
+
+	for key, value := range item.PK {
+		PK += fmt.Sprintf("%s#%s", key, value)
+	}
+
+	for key, value := range item.SK {
+		SK += fmt.Sprintf("%s#%s", key, value)
+	}
+
+	result["PK"] = &dynamoTypes.AttributeValueMemberS{Value: PK}
+	result["SK"] = &dynamoTypes.AttributeValueMemberS{Value: SK}
+
+	return result, nil
+}
+
+// UnmarshallDatabaseItem unmarshalls a database-specific item into a DatabaseItem
+// It takes a map[string]dynamoTypes.AttributeValue, which is the type returned by dynamodb.GetItemOutput.Item
+func (d *DynamoDatabaseService) UnmarshallDatabaseItem(item interface{}, result *types.DatabaseItem) error {
+
+	// TODO
+
+	dynamoItem, ok := item.(map[string]dynamoTypes.AttributeValue)
+	if !ok {
+		return errors.New("item is not of type map[string]dynamoTypes.AttributeValue")
+	}
+
+	handleKey := func(key string, m *map[databaseTypes.FieldType]interface{}) {
+		K := dynamoItem[key].(*dynamoTypes.AttributeValueMemberS).Value
+		kParts := strings.Split(K, "#")
+
+		for i := 0; i < len(kParts); i += 2 {
+			key := databaseTypes.FieldType(kParts[i])
+			value := kParts[i+1]
+
+			(*m)[key] = value
+		}
+	}
+
+	for key, value := range dynamoItem {
+		switch key {
+		case "PK":
+			handleKey(key, &result.PK)
+		case "SK":
+			handleKey(key, &result.SK)
+		default:
+			result.Attributes[databaseTypes.FieldType(key)] = value // value is a pointer to an AttributeValue of type AttributeValueMemberS, AttributeValueMemberN, or AttributeValueMemberBOOL
+		}
+	}
+
+	return nil
 }
