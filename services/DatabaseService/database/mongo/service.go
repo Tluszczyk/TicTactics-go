@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"services/DatabaseService/database/types"
+	"services/lib/log"
 	"strings"
 	"time"
 
@@ -14,8 +15,9 @@ import (
 )
 
 type MongoDatabaseService struct {
-	MongodbClient *mongo.Client
-	database      *mongo.Database
+	MongodbClient    *mongo.Client
+	database         *mongo.Database
+	cancelConnection context.CancelFunc
 }
 
 func NewMongoDatabaseService() (*MongoDatabaseService, error) {
@@ -29,18 +31,30 @@ func NewMongoDatabaseService() (*MongoDatabaseService, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongodb://%s", endpoint_url)))
+	if err != nil {
+		log.Error("Failed to connect to MongoDB!")
+		return nil, err
+	}
 
-	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
-			panic(err)
-		}
-	}()
+	// Check the connection
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Error("Failed to connect to MongoDB!")
+		return nil, err
+	}
+	log.Info("Connected to MongoDB!")
 
 	// Create and return AWS client
 	return &MongoDatabaseService{
-		MongodbClient: client,
-		database:      client.Database(database_name),
+		MongodbClient:    client,
+		database:         client.Database(database_name),
+		cancelConnection: cancel,
 	}, nil
+}
+
+func (d *MongoDatabaseService) Disconnect() error {
+	d.cancelConnection()
+	return d.MongodbClient.Disconnect(context.Background())
 }
 
 func (d *MongoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItemInput) (*types.DatabaseGetItemOutput, error) {
@@ -54,11 +68,13 @@ func (d *MongoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItemI
 		return nil, err
 	}
 
-	// Assert marshalled key to a mongo filter item
-	filter, ok := marshalled.(bson.D)
-	if !ok {
+	// Convert marshalled key to a mongo filter item
+	filter, err := bson.Marshal(marshalled)
+	if err != nil {
 		return nil, errors.New("marshalled key is not of type bson.D")
 	}
+
+	fmt.Printf("%+v\n", marshalled)
 
 	// Execute get item
 	var result bson.D
@@ -67,9 +83,22 @@ func (d *MongoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItemI
 		return nil, err
 	}
 
-	// Unmarshal result
+	// Marshal result to BSON
+	resultAsBSON, err := bson.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal result to map[string]interface{}
+	var resultAsMap map[string]interface{}
+	err = bson.Unmarshal(resultAsBSON, &resultAsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal result to DatabaseItem
 	var item types.DatabaseItem
-	err = d.UnmarshallDatabaseItem(result, &item)
+	err = d.UnmarshallDatabaseItem(resultAsMap, &item)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +110,24 @@ func (d *MongoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItemI
 }
 
 func (d *MongoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemInput) (*types.DatabasePutItemOutput, error) {
-	return nil, errors.New("not implemented")
+	// Get the collection
+	collectionName := input.TableName
+	collection := d.database.Collection(collectionName)
+
+	// Marshal item
+	marshalled, err := d.MarshallDatabaseItem(&input.Item)
+	if err != nil {
+		return nil, err
+	}
+
+	// Execute put item
+	_, err = collection.InsertOne(context.Background(), marshalled)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return result
+	return &types.DatabasePutItemOutput{}, nil
 }
 
 func (d *MongoDatabaseService) DeleteItemFromDatabase(input *types.DatabaseDeleteItemInput) (*types.DatabaseDeleteItemOutput, error) {
@@ -96,65 +142,69 @@ func (d *MongoDatabaseService) QueryDatabase(input *types.DatabaseQueryInput) (*
 	return nil, errors.New("not implemented")
 }
 
-// MarshallDatabaseItem marshalls a DatabaseItem into a bson.D mongo filter
+// MarshallDatabaseItem marshalls a DatabaseItem into a flat interface
 func (d *MongoDatabaseService) MarshallDatabaseItem(item *types.DatabaseItem) (interface{}, error) {
-	result := bson.D{}
+	result := make(map[string]interface{})
 
-	fieldNames := []string{"PK", "SK", "Attributes"}
-	for i, mapping := range []map[types.FieldType]interface{}{
-		item.PK,
-		item.SK,
-		item.Attributes,
-	} {
+	insert := func(prefix string, delimeter string, mapping map[types.FieldType]interface{}) {
 		for key, value := range mapping {
-			result = append(result, bson.E{
-				Key:   fmt.Sprintf("%s#%s", fieldNames[i], key),
-				Value: value,
-			})
+			fieldKey := fmt.Sprintf("%s%s%s", prefix, delimeter, key)
+			fieldValue := value
+
+			result[fieldKey] = fieldValue
 		}
 	}
+
+	insert("PK", "#", item.PK)
+	insert("SK", "#", item.SK)
+	insert("", "", item.Attributes)
 
 	return result, nil
 }
 
-// UnmarshallDatabaseItem unmarshalls a database-specific item into a DatabaseItem
+// UnmarshallDatabaseItem unmarshalls a flat map item into a DatabaseItem
 func (d *MongoDatabaseService) UnmarshallDatabaseItem(item interface{}, result *types.DatabaseItem) error {
-	// Assert marshalled item is of type bson.D
-	av, ok := item.(bson.D)
+	// Initialize result
+	result.PK = make(map[types.FieldType]interface{})
+	result.SK = make(map[types.FieldType]interface{})
+	result.Attributes = make(map[types.FieldType]interface{})
+
+	// Assert marshalled item is of type map[string]interface{}
+	av, ok := item.(map[string]interface{})
 	if !ok {
-		return errors.New("marshalled item is not of type bson.D")
+		return errors.New("marshalled item is not of type map[string]interface{}")
 	}
 
 	// Unmarshal item
-	for _, value := range av {
-		if len(value.Key) == 0 {
+	for key, value := range av {
+		if len(key) == 0 {
 			continue
 		}
 
-		field := strings.Split(value.Key, "#")
+		field := strings.Split(key, "#")
 
-		var fieldName string
-		var fieldKey string
+		var fieldKeyType string
+		var fieldType string
 
 		if len(field) == 1 {
-			fieldName = "Attributes"
-			fieldKey = field[0]
+			fieldKeyType = "Attributes"
+			fieldType = field[0]
 		} else {
-			fieldName = field[0]
-			fieldKey = field[1]
+			fieldKeyType = field[0]
+			fieldType = field[1]
 		}
 
 		// Get field value
-		fieldValue := value.Value
+		fieldValue := value
 
 		// Set field value
-		switch fieldName {
+		switch fieldKeyType {
 		case "PK":
-			result.PK[types.FieldType(fieldKey)] = fieldValue
+			result.PK[types.FieldType(fieldType)] = fieldValue
 		case "SK":
-			result.SK[types.FieldType(fieldKey)] = fieldValue
+			result.SK[types.FieldType(fieldType)] = fieldValue
 		case "Attributes":
-			result.Attributes[types.FieldType(fieldKey)] = fieldValue
+			result.Attributes[types.FieldType(fieldType)] = fieldValue
 		}
 	}
 
