@@ -1,48 +1,59 @@
 package cmd
 
 import (
+	"services/lib/log"
+
+	
 	"services/DatabaseService/database"
+	databaseErrors "services/DatabaseService/database/errors"
 	databaseTypes "services/DatabaseService/database/types"
 	messageTypes "services/lib/types"
 
 	"github.com/google/uuid"
 )
 
-// CheckIfUserAlreadyExists checks if a user already exists in the database
-func CheckIfUserAlreadyExists(databaseService database.DatabaseService, usersTableName string, credentials messageTypes.Credentials) (bool, error) {
-	item, err := databaseService.GetItemFromDatabase(
-		&databaseTypes.DatabaseGetItemInput{
-			TableName: usersTableName,
-			Key: databaseTypes.DatabaseItem{
-				PK: map[databaseTypes.FieldType]interface{}{
-					databaseTypes.EMAIL: credentials.Email,
-				},
-			},
-		},
-	)
+// DoesUserAlreadyExist checks if a user already exists in the database
+func DoesUserAlreadyExist(databaseService database.DatabaseService, usersTableName string, credentials messageTypes.Credentials) (bool, error) {
+	log.Info("Started DoesUserAlreadyExist")
 
-	if err != nil {
+	_, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: usersTableName,
+		Key: databaseTypes.DatabaseItem{
+			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.USERNAME: credentials.Username},
+			Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.EMAIL: credentials.Email},
+		},
+	})
+
+	if err == databaseErrors.ErrNoDocuments {
+		return false, nil
+
+	} else if err != nil {
 		return false, err
 	}
 
-	return !item.Item.IsNil(), nil
+	return true, nil
 }
 
 // CreateUser saves user's credentials to the database
-func CreateUser(databaseService database.DatabaseService, usersTableName string, passwordHashesTableName string, credentials messageTypes.Credentials) error {
+func CreateUser(databaseService database.DatabaseService, usersTableName string, passwordHashesTableName string, userPasswordHashMappingTable string, credentials messageTypes.Credentials) error {
+	log.Info("Started CreateUser")
+
+	log.Info("Create uid")
 	// Create uid
 	uid := uuid.New().String()
 
+	log.Info("Create hash_id")
 	// Create hash_id
 	hashID := uuid.New().String()
 
+	log.Info("Save password hash")
 	// Save password hash
 	item := databaseTypes.DatabaseItem{
-		PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.EMAIL: credentials.Email},
-		SK:         map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: hashID},
-		Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.PASSWORD_HASH: credentials.PasswordHash},
+		PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: hashID},
+		SK:			map[databaseTypes.FieldType]interface{}{databaseTypes.PASSWORD_HASH: credentials.PasswordHash},
 	}
 
+	log.Info("Put password hash item in the database")
 	putItemInput := databaseTypes.DatabasePutItemInput{
 		TableName: passwordHashesTableName,
 		Item:      item,
@@ -54,16 +65,37 @@ func CreateUser(databaseService database.DatabaseService, usersTableName string,
 		return err
 	}
 
+	log.Info("Save user password hash mapping item in the database")
+	// Save user password hash mapping
+	item = databaseTypes.DatabaseItem{
+		PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		SK: map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: hashID},
+	}
+
+	log.Info("Put user password hash mapping item in the database")
+	putItemInput = databaseTypes.DatabasePutItemInput{
+		TableName: userPasswordHashMappingTable,
+		Item:      item,
+	}
+
+	_, err = databaseService.PutItemInDatabase(&putItemInput)
+
+	if err != nil {
+		return err
+	}
+
+	log.Info("Save user")
 	// Save user
 	item = databaseTypes.DatabaseItem{
 		PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
 		SK: map[databaseTypes.FieldType]interface{}{databaseTypes.USERNAME: credentials.Username},
 		Attributes: map[databaseTypes.FieldType]interface{}{
 			databaseTypes.EMAIL: credentials.Email,
-			databaseTypes.ELO:   "1000",
+			databaseTypes.ELO:   1000,
 		},
 	}
 
+	log.Info("Put user item in the database")
 	putItemInput = databaseTypes.DatabasePutItemInput{
 		TableName: usersTableName,
 		Item:      item,

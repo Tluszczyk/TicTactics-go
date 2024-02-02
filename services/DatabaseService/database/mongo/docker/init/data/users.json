@@ -1,0 +1,14 @@
+[
+  {
+    "PK#UID": "0697b2e1-1895-4fad-a742-15b864e0e7d5",
+    "SK#USER": "user1",
+    "EMAIL": "user1@example.com",
+    "ELO": 1000
+  },
+  {
+    "PK#UID": "2c91c1d5-2d2b-437c-ac54-8b6f17f9e22c",
+    "SK#USER": "user2",
+    "EMAIL": "user2@example.com",
+    "ELO": 1500
+  }
+]

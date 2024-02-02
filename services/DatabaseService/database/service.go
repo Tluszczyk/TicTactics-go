@@ -3,6 +3,7 @@ package database
 import (
 	"errors"
 	"services/DatabaseService/database/dynamo"
+	"services/DatabaseService/database/mongo"
 	options "services/DatabaseService/database/options"
 	"services/DatabaseService/database/types"
 )
@@ -35,6 +36,8 @@ func GetDatabaseService(deploymentOption options.DatabaseDeploymentOption) (Data
 	switch deploymentOption {
 	case options.DYNAMO:
 		return dynamo.NewDynamoDatabaseService()
+	case options.MONGO:
+		return mongo.NewMongoDatabaseService()
 	default:
 		return nil, errors.ErrUnsupported
 	}

@@ -1,4 +1,4 @@
-![Coverage](https://img.shields.io/badge/Coverage-67.4%25-yellow)
+![Coverage](https://img.shields.io/badge/Coverage-67.25-yellow)
 
 <div style="text-align:center; margin: 100px;">
     <img src="documentation/resources/logo.png" alt=""/>
@@ -9,7 +9,7 @@ This application is a web-based implementation of the game Tic-Tactics. The game
 
 This project is an attempt to recreate the game.
 
-## 🏛️ Architecture
+## 🏛️ Architecture ![](https://progress-bar.dev/100)
 
 A high level architecture diagram of the service is shown below.
 
@@ -19,43 +19,43 @@ A high level architecture diagram of the service is shown below.
 
 Below is a description of the components of the service.
 
-### 🚀 API
+### 🚀 API 
 It will be deployed as a REST API with the following endpoint groups:
 
-| Endpoint | Description               |
-|----------|---------------------------|
-| `/auth`  | Authentication endpoints  |
-| `/user`  | User management endpoints |
-| `/game`  | Game management endpoints |
+| Endpoint | Description               | Progress                       |
+|----------|---------------------------|--------------------------------|
+| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/0) |
+| `/user`  | User management endpoints |![](https://progress-bar.dev/50)|
+| `/game`  | Game management endpoints |![](https://progress-bar.dev/0) |
 
 #### Authentication Endpoints
 
-| Endpoint         | Method | Description        |
-|------------------|------  |--------------------|
-| `/auth/session`  | GET    | Validate a session |
-|                  | POST   | Create a session   |
-|                  | DELETE | Remove session     |
+| Endpoint         | Method | Description        | Progress                      |              
+|------------------|------  |--------------------|-------------------------------|
+| `/auth/session`  | GET    | Validate a session |![](https://progress-bar.dev/0)|
+|                  | POST   | Create a session   |![](https://progress-bar.dev/0)|
+|                  | DELETE | Remove session     |![](https://progress-bar.dev/0)|
 
 #### User Management Endpoints
 
-| Endpoint | Method | Description      |
-|----------|------  |------------------|
-| `/user`  | GET    | Get a user       |
-|          | POST   | Create a session |
+| Endpoint | Method | Description      | Progress                        |
+|----------|------  |------------------|---------------------------------|
+| `/user`  | GET    | Get a user       |![](https://progress-bar.dev/0)  |
+|          | POST   | Create a user    |![](https://progress-bar.dev/100)|
 
 #### Game Management Endpoints
 
-| Endpoint           | Method | Description      |
-|--------------------|--------|------------------|
-| `/game/create`     | POST   | Create a game    |
-| `/game/join`       | PUT    | Join a game      |
-| `/game/leave`      | PUT    | Leave a game     |
-| `/game/list-games` | GET    | List games       |
-| `/game`            | GET    | Get a game       |
-|                    | PUT    | Update a game    |
+| Endpoint           | Method | Description      | Progress                      |
+|--------------------|--------|------------------|-------------------------------|
+| `/game/create`     | POST   | Create a game    |![](https://progress-bar.dev/0)|
+| `/game/join`       | PUT    | Join a game      |![](https://progress-bar.dev/0)|
+| `/game/leave`      | PUT    | Leave a game     |![](https://progress-bar.dev/0)|
+| `/game/list-games` | GET    | List games       |![](https://progress-bar.dev/0)|
+| `/game`            | GET    | Get a game       |![](https://progress-bar.dev/0)|
+|                    | PUT    | Update a game    |![](https://progress-bar.dev/0)|
 
 ### 💾 Database
-#### 📜 Schema
+#### 📜 Schema ![](https://progress-bar.dev/100)
 The database will follow this relationship schema:
 
 <div style="text-align: center;">
@@ -79,7 +79,7 @@ Since one of the implementation options is DynamoDB, before designing the databa
 1. Session Access Patterns
     1. Get a session by uid
 
-#### 💾 DynamoDB Data Model
+#### 💾 DynamoDB Data Model ![](https://progress-bar.dev/100)
 #### Design
 Based on the access patterns described in the code, we can design a DynamoDB table with the following attributes:
 

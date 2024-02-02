@@ -6,6 +6,7 @@ import (
 )
 
 func TestGetItemFromDatabase(t *testing.T) {
+	t.Skip("These tests require a local mongoDB instance to be running")
 
 	// Create a new mongoDBService
 	mongoDBService, err := NewMongoDatabaseService()
@@ -40,7 +41,8 @@ func TestGetItemFromDatabase(t *testing.T) {
 }
 
 func TestPutItemToDatabase(t *testing.T) {
-	
+	t.Skip("These tests require a local mongoDB instance to be running")
+
 	// Create a new mongoDBService
 	mongoDBService, err := NewMongoDatabaseService()
 	if err != nil {

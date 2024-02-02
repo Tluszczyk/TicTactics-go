@@ -17,7 +17,7 @@ func handlerMonad(handler func(types.Request) (types.Response, error)) func(c *g
 	return func(c *gin.Context) {
 		bodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			c.String(http.StatusInternalServerError, "Error reading request body")
+			c.String(http.StatusInternalServerError, "error reading request body: "+err.Error())
 			return
 		}
 
@@ -28,7 +28,7 @@ func handlerMonad(handler func(types.Request) (types.Response, error)) func(c *g
 
 		response, err := handler(request)
 		if err != nil {
-			c.String(http.StatusInternalServerError, "Error handling request")
+			c.String(http.StatusInternalServerError, "error handling request: "+err.Error())
 			return
 		}
 
@@ -37,6 +37,9 @@ func handlerMonad(handler func(types.Request) (types.Response, error)) func(c *g
 }
 
 func main() {
+	gin.SetMode(gin.DebugMode)
+	// os.Setenv("DATABASE_DEPLOYMENT_OPTION", "MONGO")
+
 	router := gin.Default()
 
 	// Authentication Service

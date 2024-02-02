@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  mongo:
+    build:
+      context: ../services/DatabaseService/database/mongo/docker
+      dockerfile: Dockerfile
+    ports:
+      - "27017:27017"
+  # build-api:
+  #   build:
+  #     context: ../build/LogicServices/
+  #     dockerfile: Dockerfile
+  # api:
+  #   build:
+  #     context: ../services/IOService/APIGateway/docker
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:8080"

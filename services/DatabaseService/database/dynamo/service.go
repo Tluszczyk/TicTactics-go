@@ -7,6 +7,7 @@ import (
 	"os"
 	"services/DatabaseService/database/types"
 	databaseTypes "services/DatabaseService/database/types"
+	"services/lib/log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -53,26 +54,32 @@ func NewDynamoDatabaseService() (*DynamoDatabaseService, error) {
 }
 
 func (d *DynamoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItemInput) (*types.DatabaseGetItemOutput, error) {
+	log.Info("Started GetItemFromDatabase")
+
 	tableName, key := input.TableName, input.Key
 
+	log.Info("Marshall key")
 	// Marshal key
 	marshalled, err := d.MarshallDatabaseItem(&key)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Info("Assert marshalled key is of type map[string]dynamoTypes.AttributeValue")
 	// Assert marshalled key is of type map[string]dynamoTypes.AttributeValue
 	av, ok := marshalled.(map[string]dynamoTypes.AttributeValue)
 	if !ok {
 		return nil, errors.New("marshalled key is not of type map[string]dynamoTypes.AttributeValue")
 	}
 
+	log.Info("Create get item input")
 	// Create get item input
 	dynamoInput := &dynamodb.GetItemInput{
 		TableName: &tableName,
 		Key:       av,
 	}
 
+	log.Info("Execute get item")
 	// Execute get item
 	result, err := d.DynamodbClient.GetItem(context.Background(), dynamoInput)
 
@@ -80,6 +87,7 @@ func (d *DynamoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItem
 		return nil, err
 	}
 
+	log.Info("Unmarshal result")
 	// Unmarshal result
 	var item types.DatabaseItem
 	err = d.UnmarshallDatabaseItem(result.Item, &item)
@@ -94,6 +102,8 @@ func (d *DynamoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItem
 }
 
 func (d *DynamoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemInput) (*types.DatabasePutItemOutput, error) {
+	log.Info("Started PutItemInDatabase")
+
 	tableName, item := input.TableName, input.Item
 
 	// Marshal key
@@ -125,18 +135,23 @@ func (d *DynamoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemIn
 }
 
 func (d *DynamoDatabaseService) DeleteItemFromDatabase(input *types.DatabaseDeleteItemInput) (*types.DatabaseDeleteItemOutput, error) {
+	log.Info("Started DeleteItemFromDatabase")
 	return nil, errors.New("not implemented")
 }
 
 func (d *DynamoDatabaseService) UpdateItemInDatabase(input *types.DatabaseUpdateItemInput) (*types.DatabaseUpdateItemOutput, error) {
+	log.Info("Started UpdateItemInDatabase")
 	return nil, errors.New("not implemented")
 }
 
 func (d *DynamoDatabaseService) QueryDatabase(input *types.DatabaseQueryInput) (*types.DatabaseQueryOutput, error) {
+	log.Info("Started QueryDatabase")
 	return nil, errors.New("not implemented")
 }
 
 func (d *DynamoDatabaseService) MarshallDatabaseItem(item *databaseTypes.DatabaseItem) (interface{}, error) {
+	log.Info("Started MarshallDatabaseItem")
+
 	result, err := attributevalue.MarshalMap(item.Attributes)
 
 	if err != nil {
@@ -162,6 +177,7 @@ func (d *DynamoDatabaseService) MarshallDatabaseItem(item *databaseTypes.Databas
 // UnmarshallDatabaseItem unmarshalls a database-specific item into a DatabaseItem
 // It takes a map[string]dynamoTypes.AttributeValue, which is the type returned by dynamodb.GetItemOutput.Item
 func (d *DynamoDatabaseService) UnmarshallDatabaseItem(item interface{}, result *types.DatabaseItem) error {
+	log.Info("Started UnmarshallDatabaseItem")
 
 	// TODO
 

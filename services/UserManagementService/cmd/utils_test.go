@@ -101,7 +101,7 @@ func TestCheckIfUserAlreadyExists(t *testing.T) {
 				err:         test.databaseErr,
 			}
 
-			result, err := CheckIfUserAlreadyExists(mockDB, "users", messageTypes.Credentials{
+			result, err := DoesUserAlreadyExist(mockDB, "users", messageTypes.Credentials{
 				Username:     "testuser",
 				Email:        "test@test.com",
 				PasswordHash: "testhash",
@@ -148,7 +148,7 @@ func TestCreateUser(t *testing.T) {
 				PasswordHash: "testhash",
 			}
 
-			err := CreateUser(mockDB, "users", "password_hashes", credentials)
+			err := CreateUser(mockDB, "users", "passwordHashes", "userPasswordHashMapping", credentials)
 
 			if !errors.Is(err, test.expectedErr) {
 				t.Errorf("expected %v, but got %v", test.expectedErr, err)

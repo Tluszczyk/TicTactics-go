@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"services/lib/log"
@@ -11,6 +12,9 @@ import (
 )
 
 func HandleRequest(request messageTypes.Request) (response messageTypes.Response, err error) {
+	log.Info("Started UserManagement HandleRequest")
+
+	log.Info("Getting environment variables")
 	// Get environment variables
 	databaseDeploymentOption, err := databaseOptions.ParseDatabaseDeploymentOption(os.Getenv("DATABASE_DEPLOYMENT_OPTION"))
 	if err != nil {
@@ -20,6 +24,7 @@ func HandleRequest(request messageTypes.Request) (response messageTypes.Response
 		}, err
 	}
 
+	log.Info("Getting database service")
 	// Get database service
 	databaseService, err := database.GetDatabaseService(databaseDeploymentOption)
 	if err != nil {
@@ -29,6 +34,7 @@ func HandleRequest(request messageTypes.Request) (response messageTypes.Response
 		}, err
 	}
 
+	log.Info("Proxing request")
 	switch request.HTTPMethod {
 	case "GET":
 		return handleGetRequest(databaseService, request)
@@ -45,6 +51,8 @@ func HandleRequest(request messageTypes.Request) (response messageTypes.Response
 }
 
 func handleGetRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
+	log.Info("Started HandleGETRequest")
+
 	return messageTypes.Response{
 		StatusCode: http.StatusNotImplemented,
 		Body:       "Not implemented",
@@ -52,11 +60,27 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 }
 
 func handlePostRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
-	log.Info("Started HandlePostRequest")
+	log.Info("Started HandlePOSTRequest")
 
 	// Get environment variables
 	usersTableName := os.Getenv("USERS_TABLE_NAME")
 	passwordHashesTableName := os.Getenv("PASSWORDHASH_TABLE_NAME")
+	userPasswordHashMappingTable := os.Getenv("USER_PASSWORD_HASH_MAPPING_TABLE")
+
+	if usersTableName == "" || passwordHashesTableName == "" || userPasswordHashMappingTable == ""{
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: CreateUserResponse{
+				Status: messageTypes.Status{
+					Code: http.StatusInternalServerError,
+					Message: fmt.Sprintf(
+						"Environment variables not set: USERS_TABLE_NAME=%s, PASSWORDHASH_TABLE_NAME=%s, USER_PASSWORD_HASH_MAPPING_TABLE=%s",
+						usersTableName, passwordHashesTableName, userPasswordHashMappingTable,
+					),
+				},
+			},
+		}, nil
+	}
 
 	log.Info("Got environment variables")
 
@@ -79,7 +103,7 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 	log.Info("Parsed request body")
 
 	// Check if user already exists
-	userAlreadyExists, err := CheckIfUserAlreadyExists(databaseService, usersTableName, createUserRequest.Credentials)
+	userAlreadyExists, err := DoesUserAlreadyExist(databaseService, usersTableName, createUserRequest.Credentials)
 
 	if err != nil {
 		return messageTypes.Response{
@@ -110,7 +134,7 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 	log.Info("User does not already exist")
 
 	// Create user
-	err = CreateUser(databaseService, usersTableName, passwordHashesTableName, createUserRequest.Credentials)
+	err = CreateUser(databaseService, usersTableName, passwordHashesTableName, userPasswordHashMappingTable, createUserRequest.Credentials)
 
 	if err != nil {
 		return messageTypes.Response{
