@@ -8,6 +8,7 @@ import (
 	messageTypes "services/lib/types"
 
 	"services/DatabaseService/database"
+	databaseErrors "services/DatabaseService/database/errors"
 	databaseOptions "services/DatabaseService/database/options"
 )
 
@@ -53,9 +54,81 @@ func HandleRequest(request messageTypes.Request) (response messageTypes.Response
 func handleGetRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
 	log.Info("Started HandleGETRequest")
 
-	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
+	// Get environment variables
+	usersTableName := os.Getenv("USERS_TABLE_NAME")
+
+	if usersTableName == "" {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: CreateUserResponse{
+				Status: messageTypes.Status{
+					Code: http.StatusInternalServerError,
+					Message: fmt.Sprintf(
+						"Environment variables not set: USERS_TABLE_NAME=%s",
+						usersTableName,
+					),
+				},
+			},
+		}, nil
+	}
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var getUserRequest GetUserRequest
+	err := messageTypes.ParseRequestBody(request.Body, &getUserRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: CreateUserResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Parsed request body")
+
+	user, err := GetUser(databaseService, usersTableName, getUserRequest.Username)
+
+	if err == databaseErrors.ErrNoDocuments {
+		return messageTypes.Response{
+			StatusCode: http.StatusNotFound,
+			Body: GetUserResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusNotFound,
+					Message: "User not found",
+				},
+				User:  messageTypes.User{},
+			},
+		}, nil
+	} else if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: GetUserResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error getting user",
+				},
+				User:  user,
+			},
+		}, err
+	}
+
+	log.Info("Got user")
+
+	return messageTypes.Response{	
+		StatusCode: http.StatusOK,
+		Body: GetUserResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "User found",
+			},
+			User:  user,
+		},
 	}, nil
 }
 

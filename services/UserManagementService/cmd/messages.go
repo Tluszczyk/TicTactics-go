@@ -11,3 +11,12 @@ type CreateUserRequest struct {
 type CreateUserResponse struct {
 	Status types.Status `json:"status"`
 }
+
+type GetUserRequest struct {
+	Username string `json:"username"`
+}
+
+type GetUserResponse struct {
+	Status types.Status `json:"status"`
+	User   types.User   `json:"user"`
+}

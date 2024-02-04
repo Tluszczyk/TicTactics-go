@@ -20,7 +20,7 @@ func DoesUserAlreadyExist(databaseService database.DatabaseService, usersTableNa
 		TableName: usersTableName,
 		Key: databaseTypes.DatabaseItem{
 			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.USERNAME: credentials.Username},
-			Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.EMAIL: credentials.Email},
+			// Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.EMAIL: credentials.Email}, username must bu unique
 		},
 	})
 
@@ -110,4 +110,32 @@ func CreateUser(databaseService database.DatabaseService, usersTableName string,
 	// TODO: what happens if we save the hash but not the user?
 
 	return nil
+}
+
+// GetUser retrieves a user from the database
+func GetUser(databaseService database.DatabaseService, usersTableName string, username string) (messageTypes.User, error) {
+	log.Info("Started GetUser")
+
+	// Get user
+	getItemInput := databaseTypes.DatabaseGetItemInput{
+		TableName: usersTableName,
+		Key: databaseTypes.DatabaseItem{
+			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.USERNAME: username},
+		},
+	}
+
+	item, err := databaseService.GetItemFromDatabase(&getItemInput)
+
+	if err != nil {
+		return messageTypes.User{}, err
+	}
+
+	user := messageTypes.User{
+		UID:      messageTypes.UserID(item.Item.PK[databaseTypes.UID].(string)),
+		Username: item.Item.SK[databaseTypes.USERNAME].(string),
+		Email:    item.Item.Attributes[databaseTypes.EMAIL].(string),
+		Elo:      int(item.Item.Attributes[databaseTypes.ELO].(int32)),
+	}
+
+	return user, nil
 }

@@ -1,7 +1,5 @@
 package types
 
-import "github.com/google/uuid"
-
 type ErrorResponse struct {
 	Title   string `json:"title"`
 	Details string `json:"details"`
@@ -35,16 +33,18 @@ type Credentials struct {
 	PasswordHash string `json:"password_hash"`
 }
 
-type Token uuid.UUID
+type Token string
 type Session struct {
 	Token Token
-	User  User
+	UID   UserID
 }
 
-type UserID uuid.UUID
+type UserID string
 type User struct {
-	UserID   UserID
+	UID      UserID
 	Username string
+	Email    string
+	Elo      int
 }
 
 type Game struct {

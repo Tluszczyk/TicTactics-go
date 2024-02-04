@@ -22,11 +22,11 @@ Below is a description of the components of the service.
 ### 🚀 API 
 It will be deployed as a REST API with the following endpoint groups:
 
-| Endpoint | Description               | Progress                       |
-|----------|---------------------------|--------------------------------|
-| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/0) |
-| `/user`  | User management endpoints |![](https://progress-bar.dev/50)|
-| `/game`  | Game management endpoints |![](https://progress-bar.dev/0) |
+| Endpoint | Description               | Progress                        |
+|----------|---------------------------|---------------------------------|
+| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/0)  |
+| `/user`  | User management endpoints |![](https://progress-bar.dev/100)|
+| `/game`  | Game management endpoints |![](https://progress-bar.dev/0)  |
 
 #### Authentication Endpoints
 
@@ -40,7 +40,7 @@ It will be deployed as a REST API with the following endpoint groups:
 
 | Endpoint | Method | Description      | Progress                        |
 |----------|------  |------------------|---------------------------------|
-| `/user`  | GET    | Get a user       |![](https://progress-bar.dev/0)  |
+| `/user`  | GET    | Get a user       |![](https://progress-bar.dev/100)|
 |          | POST   | Create a user    |![](https://progress-bar.dev/100)|
 
 #### Game Management Endpoints

@@ -26,25 +26,21 @@ func TestErrorResponse(t *testing.T) {
 }
 
 func TestSession(t *testing.T) {
-	userID := UserID(uuid.New())
+	userID := UserID(uuid.New().String())
 	user := User{
-		UserID:   userID,
+		UID:      userID,
 		Username: "testuser",
 	}
 
-	token := Token(uuid.New())
+	token := Token(uuid.New().String())
 
 	session := Session{
 		Token: token,
-		User:  user,
+		UID:   user.UID,
 	}
 
-	if session.User.UserID != userID {
-		t.Errorf("Expected UserID: %v, got: %v", userID, session.User.UserID)
-	}
-
-	if session.User.Username != "testuser" {
-		t.Errorf("Expected Username: testuser, got: %s", session.User.Username)
+	if session.UID != userID {
+		t.Errorf("Expected UserID: %v, got: %v", userID, session.UID)
 	}
 
 	if session.Token != token {
