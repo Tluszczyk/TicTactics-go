@@ -60,7 +60,7 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 	if usersTableName == "" {
 		return messageTypes.Response{
 			StatusCode: http.StatusInternalServerError,
-			Body: CreateUserResponse{
+			Body: GetUserResponse{
 				Status: messageTypes.Status{
 					Code: http.StatusInternalServerError,
 					Message: fmt.Sprintf(
@@ -68,6 +68,7 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 						usersTableName,
 					),
 				},
+				User: messageTypes.User{},
 			},
 		}, nil
 	}
@@ -81,11 +82,12 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 	if err != nil {
 		return messageTypes.Response{
 			StatusCode: http.StatusBadRequest,
-			Body: CreateUserResponse{
+			Body: GetUserResponse{
 				Status: messageTypes.Status{
 					Code:    http.StatusBadRequest,
 					Message: "Error parsing request body",
 				},
+				User:  messageTypes.User{},
 			},
 		}, err
 	}

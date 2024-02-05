@@ -24,17 +24,17 @@ It will be deployed as a REST API with the following endpoint groups:
 
 | Endpoint | Description               | Progress                        |
 |----------|---------------------------|---------------------------------|
-| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/0)  |
+| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/33) |
 | `/user`  | User management endpoints |![](https://progress-bar.dev/100)|
 | `/game`  | Game management endpoints |![](https://progress-bar.dev/0)  |
 
 #### Authentication Endpoints
 
-| Endpoint         | Method | Description        | Progress                      |              
-|------------------|------  |--------------------|-------------------------------|
-| `/auth/session`  | GET    | Validate a session |![](https://progress-bar.dev/0)|
-|                  | POST   | Create a session   |![](https://progress-bar.dev/0)|
-|                  | DELETE | Remove session     |![](https://progress-bar.dev/0)|
+| Endpoint         | Method | Description        | Progress                        |              
+|------------------|------  |--------------------|---------------------------------|
+| `/auth/session`  | GET    | Validate a session |![](https://progress-bar.dev/100)|
+|                  | POST   | Create a session   |![](https://progress-bar.dev/0)  |
+|                  | DELETE | Remove session     |![](https://progress-bar.dev/0)  |
 
 #### User Management Endpoints
 
@@ -126,3 +126,24 @@ Session Access Patterns
 1. Get a session by uid
 
     Query the table with ```PK = SESSION#{sessionId} ```and``` SK = SESSION.```
+## Possible Deployment Options
+### 🐳 Docker
+One docker image contains the API and the other contains the database. The API will be deployed as a REST API and the database will be deployed as a MongoDB instance.
+
+<div style="text-align: center;">
+    <img src="documentation/resources/DockerDeploymentOption.svg" alt=""/>
+</div>
+
+### 🌐 AWS
+The API will be deployed as a REST API, invoking kambda functions and the database will be deployed as a DynamoDB instance.
+
+<div style="text-align: center;">
+    <img src="documentation/resources/LambdaDeploymentOption.svg" alt=""/>
+</div>
+
+### <img src="https://raw.githubusercontent.com/kubernetes/kubernetes/dbd3f3564ac6cca9a152a3244ab96257e5a4f00c/logo/logo.svg" alt="Kubernetes" height="18em"/> Kubernetes
+The API will be deployed as a REST API, services will be deployed as a pod in a running kubernetes and the database will be deployed as a MongoDB instance.
+
+<div style="text-align: center;">
+    <img src="documentation/resources/K8sDeploymentOption.svg" alt=""/>
+</div>

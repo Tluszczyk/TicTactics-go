@@ -1,6 +1,6 @@
 #!/bin/bash
 
-collections=(users passwordHashes userPasswordHashMapping)
+collections=(users passwordHashes userPasswordHashMapping sessions userSessionMapping)
 
 echo "########### Loading data to Mongo DB ###########"
 

@@ -39,6 +39,12 @@ type Session struct {
 	UID   UserID
 }
 
+type SessionID string
+type UserSessionMapping struct {
+	UID    UserID
+	SID    SessionID
+}
+
 type UserID string
 type User struct {
 	UID      UserID

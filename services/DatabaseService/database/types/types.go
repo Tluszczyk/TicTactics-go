@@ -9,6 +9,8 @@ const (
 	HASH_ID       FieldType = "HID"
 	PASSWORD_HASH FieldType = "PHASH"
 	ELO           FieldType = "ELO"
+	SID           FieldType = "SID"
+	TOKEN         FieldType = "TOKEN"
 )
 
 type DatabaseItem struct {

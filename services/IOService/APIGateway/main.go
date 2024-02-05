@@ -2,9 +2,9 @@ package main
 
 import (
 	"io"
-	"encoding/json"
 	"net/http"
 
+	"services/lib/log"
 	"services/lib/types"
 
 	auth "services/AuthenticationService/cmd"
@@ -15,38 +15,26 @@ import (
 )
 
 func authenticator(req types.Request) (types.Response, error) {
-	var data map[string]string
-	
-	bodyBytes := []byte(req.Body)
-	err := json.Unmarshal(bodyBytes, &data)
+	log.Info("authenticating request")
+
+	// Check if the session token is valid
+	response, err := auth.HandleRequest(types.Request{
+		HTTPMethod: http.MethodGet,
+		Body:       req.Body,
+	})
 
 	if err != nil {
 		return types.Response{
-			StatusCode: http.StatusBadRequest,
-			Body:       "invalid request body",
+			StatusCode: http.StatusInternalServerError,
+			Body:       "error authenticating request: " + err.Error(),
 		}, nil
 	}
 
-	// Check if the request has a Session field
-	if sessionField, ok := data["Session"]; !ok {
-		// Check if the session token is valid
-		response, err := auth.HandleRequest(types.Request{
-			HTTPMethod: http.MethodGet,
-			Body:       sessionField,
-		})
-
-		if err != nil {
-			return types.Response{
-				StatusCode: http.StatusInternalServerError,
-				Body:       "error authenticating request: " + err.Error(),
-			}, nil
-		}
-
-		if response.StatusCode != http.StatusOK {
-			return response, nil
-		}
+	if response.StatusCode != http.StatusOK {
+		return response, nil
 	}
 
+	log.Info("request authenticated")
 	return types.Response{
 		StatusCode: http.StatusOK,
 		Body:       "authenticated",
@@ -57,7 +45,10 @@ func handlerMonad(handler func(types.Request) (types.Response, error), requiresA
 	return func(c *gin.Context) {
 		bodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			c.String(http.StatusInternalServerError, "error reading request body: "+err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, types.Response{
+				StatusCode: http.StatusInternalServerError,
+				Body:       "error reading request body: " + err.Error(),
+			})
 			return
 		}
 
@@ -69,23 +60,29 @@ func handlerMonad(handler func(types.Request) (types.Response, error), requiresA
 		if requiresAuthentication {
 			authResponse, err := authenticator(request)
 			if err != nil {
-				c.String(http.StatusInternalServerError, "error authenticating request: "+err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, types.Response{
+					StatusCode: http.StatusInternalServerError,
+					Body:       "error authenticating request: " + err.Error(),
+				})
 				return
 			}
 
 			if authResponse.StatusCode != http.StatusOK {
-				c.String(authResponse.StatusCode, authResponse.Body.(string))
+				c.JSON(authResponse.StatusCode, authResponse)
 				return
 			}
 		}
 
 		response, err := handler(request)
 		if err != nil {
-			c.String(http.StatusInternalServerError, "error handling request: "+err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, types.Response{
+				StatusCode: http.StatusInternalServerError,
+				Body:       "error handling request: " + err.Error(),
+			})
 			return
 		}
 
-		c.IndentedJSON(response.StatusCode, response.Body)
+		c.IndentedJSON(response.StatusCode, response)
 	}
 }
 
@@ -100,8 +97,8 @@ func main() {
 	router.DELETE("/auth/session", handlerMonad(auth.HandleRequest, true))
 
 	// User Management Service
-	router.GET("/user", handlerMonad(userManagement.HandleRequest, false))
-	router.POST("/user", handlerMonad(userManagement.HandleRequest, true))
+	router.GET("/user", handlerMonad(userManagement.HandleRequest, true))
+	router.POST("/user", handlerMonad(userManagement.HandleRequest, false))
 	router.DELETE("/user", handlerMonad(userManagement.HandleRequest, true))
 
 	// Game Management Service

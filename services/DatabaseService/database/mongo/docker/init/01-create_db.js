@@ -2,7 +2,9 @@
 collections=[
     "users", 
     "passwordHashes", 
-    "userPasswordHashMapping"
+    "userPasswordHashMapping",
+    "sessions",
+    "userSessionMapping",
 ];
 
 // Get environment variables
