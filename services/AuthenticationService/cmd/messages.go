@@ -13,7 +13,7 @@ type ValidateSessionResponse struct {
 }
 
 type CreateSessionRequest struct {
-	Credentials string `json:"credentials"`
+	Credentials types.Credentials `json:"credentials"`
 }
 
 type CreateSessionResponse struct {

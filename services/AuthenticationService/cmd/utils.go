@@ -7,6 +7,8 @@ import (
 	databaseTypes "services/DatabaseService/database/types"
 	"services/lib/log"
 	"services/lib/types"
+
+	"github.com/google/uuid"
 )
 
 func ValidateSession(databaseService database.DatabaseService, sessionsTableName string, userSessionMappingTableName string, session types.Session) (bool, error) {
@@ -48,4 +50,118 @@ func ValidateSession(databaseService database.DatabaseService, sessionsTableName
 	}
 
 	return true, nil
+}
+
+func ValidateCredentials(databaseService database.DatabaseService, usersTableName string, passwordHashesTableName string, userPasswordHashMappingTableName string, credentials types.Credentials) (types.User, error) {
+	log.Info("Started ValidateCredentials")
+
+	userGetItemOutput, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: usersTableName,
+		Key: databaseTypes.DatabaseItem{
+			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.USERNAME: credentials.Username},
+		},
+	})
+
+	if err == databaseErrors.ErrNoDocuments {
+		log.Info("User not found")
+		return types.User{}, nil
+
+	} else if err != nil {
+		return types.User{}, err
+	}
+
+	userPasswordHashMappingGetItemOutput, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: userPasswordHashMappingTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: userGetItemOutput.Item.PK[databaseTypes.UID]},
+		},
+	})
+
+	if err == databaseErrors.ErrNoDocuments {
+		log.Info("User password hash mapping not found")
+		return types.User{}, nil
+
+	} else if err != nil {
+		return types.User{}, err
+	}
+
+	passwordHashGetItemOutput, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: passwordHashesTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: userPasswordHashMappingGetItemOutput.Item.SK[databaseTypes.HASH_ID]},
+		},
+	})
+
+	if err == databaseErrors.ErrNoDocuments {
+		log.Info("Password hash not found")
+		return types.User{}, nil
+
+	} else if err != nil {
+		return types.User{}, err
+	}
+
+	log.Info("Compare password hashes")
+	if credentials.PasswordHash != passwordHashGetItemOutput.Item.SK[databaseTypes.PASSWORD_HASH].(string) {
+		log.Info("Password hashes do not match")
+		return types.User{}, nil
+	}
+
+	log.Info(fmt.Sprintf("User: %v", *userGetItemOutput))
+
+	log.Info("Password hashes match")
+	return types.User{
+		UID:      types.UserID(userGetItemOutput.Item.PK[databaseTypes.UID].(string)),
+		Username: userGetItemOutput.Item.SK[databaseTypes.USERNAME].(string),
+		Email:    userGetItemOutput.Item.Attributes[databaseTypes.EMAIL].(string),
+		Elo:      int(userGetItemOutput.Item.Attributes[databaseTypes.ELO].(int32)),
+	}, nil
+}
+
+func CreateSession(databaseService database.DatabaseService, sessionsTableName string, userSessionMappingTableName string, uid types.UserID) (types.Session, error) {
+	log.Info("Started CreateSession")
+
+	// Create session
+	sid := types.UserID(uuid.New().String())
+	token := types.Token(uuid.New().String())
+
+	// Save session
+	putItemInput := databaseTypes.DatabasePutItemInput{
+		TableName: sessionsTableName,
+		Item: databaseTypes.DatabaseItem{
+			PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.SID: sid},
+			Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.TOKEN: token},
+		},
+	}
+
+	_, err := databaseService.PutItemInDatabase(&putItemInput)
+
+	if err != nil {
+		return types.Session{}, err
+	}
+
+	log.Info("Session saved")
+
+	// Save user session mapping
+	putItemInput = databaseTypes.DatabasePutItemInput{
+		TableName: userSessionMappingTableName,
+		Item: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.SID: sid},
+		},
+	}
+
+	_, err = databaseService.PutItemInDatabase(&putItemInput)
+
+	if err != nil {
+		return types.Session{}, err
+	}
+
+	log.Info("User session mapping saved")
+	log.Info("Session created")
+
+	// Session created
+	return types.Session{
+		UID:   uid,
+		Token: token,
+	}, nil
 }

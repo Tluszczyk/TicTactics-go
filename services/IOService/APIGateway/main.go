@@ -82,7 +82,7 @@ func handlerMonad(handler func(types.Request) (types.Response, error), requiresA
 			return
 		}
 
-		c.IndentedJSON(response.StatusCode, response)
+		c.IndentedJSON(response.StatusCode, response.Body)
 	}
 }
 

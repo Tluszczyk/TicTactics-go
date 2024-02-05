@@ -480,7 +480,7 @@ components:
         GetUserRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 username:
                     type: string
@@ -498,7 +498,7 @@ components:
         DeleteUserRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 uid:
                     type: string
@@ -514,7 +514,7 @@ components:
         ValidateSessionRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
             description: Validate session request
         
@@ -537,14 +537,14 @@ components:
             properties:
                 Status:
                     $ref: '#/components/schemas/Status'
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
             description: Create session response
 
         DeleteSessionRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
             description: Delete session request
 
@@ -593,7 +593,7 @@ components:
         CreateGameRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 Settings:
                     $ref: '#/components/schemas/GameSettings'
@@ -609,7 +609,7 @@ components:
         JoinGameRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 gid:
                     type: string
@@ -625,7 +625,7 @@ components:
         LeaveGameRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 gid:
                     type: string
@@ -641,7 +641,7 @@ components:
         GetGameRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 gid:
                     type: string
@@ -659,7 +659,7 @@ components:
         UpdateGameRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 gid:
                     type: string
@@ -677,7 +677,7 @@ components:
         ListGamesRequest:
             type: object
             properties:
-                Session:
+                session:
                     $ref: '#/components/schemas/Session'
                 Filter:
                     $ref: '#/components/schemas/GamesFilter'

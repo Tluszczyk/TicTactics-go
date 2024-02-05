@@ -45,9 +45,6 @@ func HandleRequest(request messageTypes.Request) (messageTypes.Response, error) 
 	case "POST":
 		return handlePostRequest(databaseService, request)
 
-	case "PUT":
-		return handlePutRequest(databaseService, request)
-
 	case "DELETE":
 		return handleDeleteRequest(databaseService, request)
 
@@ -66,13 +63,13 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 	sessionsTableName := os.Getenv("SESSIONS_TABLE_NAME")
 	userSessionMappingTableName := os.Getenv("USER_SESSION_MAPPING_TABLE_NAME")
 
-	if sessionsTableName == "" {
+	if sessionsTableName == "" || userSessionMappingTableName == "" {
 		return messageTypes.Response{
 			StatusCode: http.StatusInternalServerError,
 			Body: ValidateSessionResponse{
 				Status: messageTypes.Status{
 					Code:    http.StatusInternalServerError,
-					Message: "Error getting environment variables",
+					Message: fmt.Sprintf("Error getting environment variables: %v, %v", sessionsTableName, userSessionMappingTableName),
 				},
 			},
 		}, nil
@@ -142,20 +139,88 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 }
 
 func handlePostRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
-	log.Info("Started Post")
+	log.Info("Started HandleGETRequest")
+
+	// Get environment variables
+	usersTableName := os.Getenv("USERS_TABLE_NAME")
+	passwordHashesTableName := os.Getenv("PASSWORD_HASHES_TABLE_NAME")
+	userPasswordHashMappingTableName := os.Getenv("USER_PASSWORD_HASH_MAPPING_TABLE_NAME")
+	sessionsTableName := os.Getenv("SESSIONS_TABLE_NAME")
+	userSessionMappingTableName := os.Getenv("USER_SESSION_MAPPING_TABLE_NAME")
+
+	if sessionsTableName == "" || userSessionMappingTableName == "" {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: fmt.Sprintf("Error getting environment variables: %v, %v", sessionsTableName, userSessionMappingTableName),
+				},
+			},
+		}, nil
+	}
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var createSessionRequest CreateSessionRequest
+	err := messageTypes.ParseRequestBody(request.Body, &createSessionRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Validate Credentials")
+
+	user, err := ValidateCredentials(databaseService, usersTableName, passwordHashesTableName, userPasswordHashMappingTableName, createSessionRequest.Credentials)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error validating credentials",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Create session")
+
+	session, err := CreateSession(databaseService, sessionsTableName, userSessionMappingTableName, user.UID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error creating session",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Created session")
 
 	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
-	}, nil
-}
-
-func handlePutRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
-	log.Info("Started Put")
-
-	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
+		StatusCode: http.StatusOK,
+		Body: CreateSessionResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "Session created",
+			},
+			Session: session,
+		},
 	}, nil
 }
 
