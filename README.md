@@ -24,7 +24,7 @@ It will be deployed as a REST API with the following endpoint groups:
 
 | Endpoint | Description               | Progress                        |
 |----------|---------------------------|---------------------------------|
-| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/66) |
+| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/100)|
 | `/user`  | User management endpoints |![](https://progress-bar.dev/100)|
 | `/game`  | Game management endpoints |![](https://progress-bar.dev/0)  |
 
@@ -34,7 +34,7 @@ It will be deployed as a REST API with the following endpoint groups:
 |------------------|------  |--------------------|---------------------------------|
 | `/auth/session`  | GET    | Validate a session |![](https://progress-bar.dev/100)|
 |                  | POST   | Create a session   |![](https://progress-bar.dev/100)|
-|                  | DELETE | Remove session     |![](https://progress-bar.dev/0)  |
+|                  | DELETE | Remove session     |![](https://progress-bar.dev/100)|
 
 #### User Management Endpoints
 
@@ -62,6 +62,13 @@ The database will follow this relationship schema:
     <img src="documentation/resources/Database.svg" alt=""/>
 </div>
 
+<u>This is not the database's diagram. Each database implementation has it's own database diagram</u>
+
+#### Implementation Options
+1. MongoDB <img src="https://www.mongodb.com/assets/images/global/favicon.ico" alt="Kubernetes" height="18em"/>
+1. DynamoDB <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/DynamoDB.png/120px-DynamoDB.png" alt="Kubernetes" height="18em"/>
+
+#### 📦 Data Model
 Since one of the implementation options is DynamoDB, before designing the database, it is important to understand the [data model](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html#HowItWorks.CoreComponents.DataModel) of DynamoDB and how to [model relationships](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-modeling-nosql-B.html) between entities. First we have to describe the access patterns that will occur.
 
 #### Access Patterns
@@ -79,7 +86,7 @@ Since one of the implementation options is DynamoDB, before designing the databa
 1. Session Access Patterns
     1. Get a session by uid
 
-#### 💾 DynamoDB Data Model ![](https://progress-bar.dev/100)
+#### 💾 DynamoDB Data Model ![](https://progress-bar.dev/30)
 #### Design
 Based on the access patterns described in the code, we can design a DynamoDB table with the following attributes:
 

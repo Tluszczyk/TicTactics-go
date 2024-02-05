@@ -148,13 +148,25 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 	sessionsTableName := os.Getenv("SESSIONS_TABLE_NAME")
 	userSessionMappingTableName := os.Getenv("USER_SESSION_MAPPING_TABLE_NAME")
 
-	if sessionsTableName == "" || userSessionMappingTableName == "" {
+	if (
+		usersTableName == "" ||
+		passwordHashesTableName == "" ||
+		userPasswordHashMappingTableName == "" ||
+		sessionsTableName == "" ||
+		userSessionMappingTableName == ""){
+
 		return messageTypes.Response{
 			StatusCode: http.StatusInternalServerError,
 			Body: CreateSessionResponse{
 				Status: messageTypes.Status{
 					Code:    http.StatusInternalServerError,
-					Message: fmt.Sprintf("Error getting environment variables: %v, %v", sessionsTableName, userSessionMappingTableName),
+					Message: fmt.Sprintf("Error getting environment variables: %v, %v, %v, %v, %v", 
+						sessionsTableName, 
+						userSessionMappingTableName, 
+						usersTableName, 
+						passwordHashesTableName, 
+						userPasswordHashMappingTableName,
+					),
 				},
 			},
 		}, nil
@@ -225,10 +237,82 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 }
 
 func handleDeleteRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
-	log.Info("Started Delete")
+	log.Info("Started HandleDELETERequest")
+
+	// Get environment variables
+	usersTableName := os.Getenv("USERS_TABLE_NAME")
+	passwordHashesTableName := os.Getenv("PASSWORD_HASHES_TABLE_NAME")
+	userPasswordHashMappingTableName := os.Getenv("USER_PASSWORD_HASH_MAPPING_TABLE_NAME")
+	sessionsTableName := os.Getenv("SESSIONS_TABLE_NAME")
+	userSessionMappingTableName := os.Getenv("USER_SESSION_MAPPING_TABLE_NAME")
+
+	if (
+		usersTableName == "" ||
+		passwordHashesTableName == "" ||
+		userPasswordHashMappingTableName == "" ||
+		sessionsTableName == "" ||
+		userSessionMappingTableName == "") {
+
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: fmt.Sprintf("Error getting environment variables: %v, %v, %v, %v, %v", 
+						sessionsTableName, 
+						userSessionMappingTableName, 
+						usersTableName, 
+						passwordHashesTableName, 
+						userPasswordHashMappingTableName,
+					),
+				},
+			},
+		}, nil
+	}
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var deleteSessionRequest DeleteSessionRequest
+	err := messageTypes.ParseRequestBody(request.Body, &deleteSessionRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: DeleteSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Delete session")
+
+	err = DeleteSession(databaseService, sessionsTableName, userSessionMappingTableName, deleteSessionRequest.Session)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: DeleteSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error deleting session",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Deleted session")
 
 	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
+		StatusCode: http.StatusOK,
+		Body: DeleteSessionResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "Session deleted",
+			},
+		},
 	}, nil
 }

@@ -154,7 +154,29 @@ func (d *MongoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemInp
 
 func (d *MongoDatabaseService) DeleteItemFromDatabase(input *types.DatabaseDeleteItemInput) (*types.DatabaseDeleteItemOutput, error) {
 	log.Info("Started DeleteItemFromDatabase")
-	return nil, errors.New("not implemented")
+	
+	log.Info("Get the collection")
+	// Get the collection
+	collectionName := input.TableName
+	collection := d.database.Collection(collectionName)
+
+	log.Info("Marshal key")
+	// Marshal key
+	marshalled, err := d.MarshallDatabaseItem(&input.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Execute delete item")
+	// Execute delete item
+	_, err = collection.DeleteOne(context.Background(), marshalled)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Delete item successful")
+	// Return result
+	return &types.DatabaseDeleteItemOutput{}, nil
 }
 
 func (d *MongoDatabaseService) UpdateItemInDatabase(input *types.DatabaseUpdateItemInput) (*types.DatabaseUpdateItemOutput, error) {

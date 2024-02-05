@@ -165,3 +165,53 @@ func CreateSession(databaseService database.DatabaseService, sessionsTableName s
 		Token: token,
 	}, nil
 }
+
+func DeleteSession(databaseService database.DatabaseService, sessionsTableName string, userSessionMappingTableName string, session types.Session) error {
+	log.Info("Started DeleteSession")
+
+	userSessionMappingGetItemOutput, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: userSessionMappingTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: session.UID},
+		},
+	})
+
+	if err == databaseErrors.ErrNoDocuments {
+		log.Info("Session not found in user session mapping")
+		return nil
+
+	} else if err != nil {
+		return err
+	}
+
+	sid := userSessionMappingGetItemOutput.Item.SK[databaseTypes.SID].(string)
+
+	_, err = databaseService.DeleteItemFromDatabase(&databaseTypes.DatabaseDeleteItemInput{
+		TableName: sessionsTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.SID: sid},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Info("Session deleted from sessions")
+
+	_, err = databaseService.DeleteItemFromDatabase(&databaseTypes.DatabaseDeleteItemInput{
+		TableName: userSessionMappingTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: session.UID},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Info("Session deleted from user session mapping")
+	log.Info("Session deleted")
+
+	return nil
+}
