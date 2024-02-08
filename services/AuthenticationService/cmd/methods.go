@@ -197,6 +197,34 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 		}, err
 	}
 
+	log.Info("Check if user is already logged in")
+
+	alreadySignedIn, err := DoesUserAlreadyHaveSession(databaseService, sessionsTableName, userSessionMappingTableName, user.UID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error checking if user already has session",
+				},
+			},
+		}, err
+	}
+
+	if alreadySignedIn {
+		return messageTypes.Response{
+			StatusCode: http.StatusConflict,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusConflict,
+					Message: "User already has a session",
+				},
+			},
+		}, nil
+	}
+
 	log.Info("Create session")
 
 	session, err := CreateSession(databaseService, sessionsTableName, userSessionMappingTableName, user.UID)

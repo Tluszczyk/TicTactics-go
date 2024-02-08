@@ -3,6 +3,8 @@ package types
 type FieldType string
 
 const (
+	CREATED_AT FieldType = "createdAt"
+
 	USERNAME      FieldType = "USER"
 	UID           FieldType = "UID"
 	EMAIL         FieldType = "EMAIL"

@@ -7,9 +7,30 @@ import (
 	databaseTypes "services/DatabaseService/database/types"
 	"services/lib/log"
 	"services/lib/types"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+func DoesUserAlreadyHaveSession(databaseService database.DatabaseService, sessionsTableName string, userSessionMappingTableName string, uid types.UserID) (bool, error) {
+	log.Info("Started DoesUserAlreadyHaveSession")
+
+	_, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: userSessionMappingTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		},
+	})
+
+	if err == databaseErrors.ErrNoDocuments {
+		return false, nil
+
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
 
 func ValidateSession(databaseService database.DatabaseService, sessionsTableName string, userSessionMappingTableName string, session types.Session) (bool, error) {
 	log.Info("Started ValidateSession")
@@ -124,8 +145,11 @@ func CreateSession(databaseService database.DatabaseService, sessionsTableName s
 	putItemInput := databaseTypes.DatabasePutItemInput{
 		TableName: sessionsTableName,
 		Item: databaseTypes.DatabaseItem{
-			PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.SID: sid},
-			Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.TOKEN: token},
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.SID: sid},
+			Attributes: map[databaseTypes.FieldType]interface{}{
+				databaseTypes.TOKEN:      token,
+				databaseTypes.CREATED_AT: time.Now(),
+			},
 		},
 	}
 
@@ -141,8 +165,9 @@ func CreateSession(databaseService database.DatabaseService, sessionsTableName s
 	putItemInput = databaseTypes.DatabasePutItemInput{
 		TableName: userSessionMappingTableName,
 		Item: databaseTypes.DatabaseItem{
-			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
-			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.SID: sid},
+			PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+			SK:         map[databaseTypes.FieldType]interface{}{databaseTypes.SID: sid},
+			Attributes: map[databaseTypes.FieldType]interface{}{databaseTypes.CREATED_AT: time.Now()},
 		},
 	}
 

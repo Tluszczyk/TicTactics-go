@@ -9,6 +9,11 @@ This application is a web-based implementation of the game Tic-Tactics. The game
 
 This project is an attempt to recreate the game.
 
+## 📜 Game Rules ![](https://progress-bar.dev/0)
+The game is a variation of the classic Tic-Tac-Toe game. The game is played on a 3x3 grid, where each cell can contain a 3x3 grid
+
+// TODO: Add game rules description
+
 ## 🏛️ Architecture ![](https://progress-bar.dev/100)
 
 A high level architecture diagram of the service is shown below.
@@ -56,7 +61,7 @@ It will be deployed as a REST API with the following endpoint groups:
 |                    | PUT    | Update a game    |![](https://progress-bar.dev/0)  |
 
 ### 💾 Database
-#### 📜 Schema ![](https://progress-bar.dev/100)
+#### <img src="https://static.vecteezy.com/system/resources/previews/029/345/981/non_2x/database-icon-data-analytics-icon-monitoring-big-data-analysis-containing-database-free-png.png" alt="" height="20em"/> Schema ![](https://progress-bar.dev/100)
 The database will follow this relationship schema:
 
 <div style="text-align: center;">
@@ -64,6 +69,8 @@ The database will follow this relationship schema:
 </div>
 
 <u>This is not the database's diagram. Each database implementation has it's own database diagram</u>
+
+The *Sessions* table has a Time-to-Live (TTL) set via an environment variable, which means it will be automatically deleted after a certain time. Additionally, sessions are deleted when the user logs out.
 
 #### Implementation Options
 1. MongoDB <img src="https://www.mongodb.com/assets/images/global/favicon.ico" alt="Kubernetes" height="18em"/>
@@ -135,11 +142,6 @@ Session Access Patterns
 
     Query the table with ```PK = SESSION#{sessionId} ```and``` SK = SESSION.```
 
-## Game Rules ![](https://progress-bar.dev/0)
-The game is a variation of the classic Tic-Tac-Toe game. The game is played on a 3x3 grid, where each cell can contain a 3x3 grid
-
-// TODO: Add game rules description
-
 ## Possible Deployment Options
 ### 🐳 Docker  ![](https://progress-bar.dev/100)
 One docker image contains the API and the other contains the database. The API will be deployed as a REST API and the database will be deployed as a MongoDB instance.
@@ -168,7 +170,6 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 * Automated tests
 * Board record compression
 * Game rules customistaion
-* Session TTL
 
 ## Testing *In progress* 
 ![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)
