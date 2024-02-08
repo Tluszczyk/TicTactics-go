@@ -1,15 +1,16 @@
 package cmd
 
 import (
-
 	"fmt"
 	"net/http"
 	"os"
 
 	"services/lib/log"
 	messageTypes "services/lib/types"
+	"services/lib/utils"
 
 	"services/DatabaseService/database"
+	databaseErrors "services/DatabaseService/database/errors"
 	databaseOptions "services/DatabaseService/database/options"
 )
 
@@ -60,26 +61,22 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 	log.Info("Started HandleGETRequest")
 
 	// Get environment variables
-	sessionsTableName := os.Getenv("SESSIONS_TABLE_NAME")
-	userSessionMappingTableName := os.Getenv("USER_SESSION_MAPPING_TABLE_NAME")
+	tableNames, status, err := utils.GetEnvironmentVariables("SESSIONS_TABLE_NAME", "USER_SESSION_MAPPING_TABLE_NAME")
 
-	if sessionsTableName == "" || userSessionMappingTableName == "" {
+	if err != nil {
 		return messageTypes.Response{
-			StatusCode: http.StatusInternalServerError,
-			Body: ValidateSessionResponse{
-				Status: messageTypes.Status{
-					Code:    http.StatusInternalServerError,
-					Message: fmt.Sprintf("Error getting environment variables: %v, %v", sessionsTableName, userSessionMappingTableName),
-				},
-			},
-		}, nil
+			StatusCode: int(status.Code),
+			Body:       ValidateSessionResponse{Status: status},
+		}, err
 	}
+
+	sessionsTableName, userSessionMappingTableName := tableNames[0], tableNames[1]
 
 	log.Info("Got environment variables")
 
 	// Parse request body
 	var validateSessionRequest ValidateSessionRequest
-	err := messageTypes.ParseRequestBody(request.Body, &validateSessionRequest)
+	err = messageTypes.ParseRequestBody(request.Body, &validateSessionRequest)
 
 	if err != nil {
 		return messageTypes.Response{
@@ -142,41 +139,25 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 	log.Info("Started HandleGETRequest")
 
 	// Get environment variables
-	usersTableName := os.Getenv("USERS_TABLE_NAME")
-	passwordHashesTableName := os.Getenv("PASSWORD_HASHES_TABLE_NAME")
-	userPasswordHashMappingTableName := os.Getenv("USER_PASSWORD_HASH_MAPPING_TABLE_NAME")
-	sessionsTableName := os.Getenv("SESSIONS_TABLE_NAME")
-	userSessionMappingTableName := os.Getenv("USER_SESSION_MAPPING_TABLE_NAME")
+	tableNames, status, err := utils.GetEnvironmentVariables("USERS_TABLE_NAME", "PASSWORD_HASHES_TABLE_NAME", "USER_PASSWORD_HASH_MAPPING_TABLE_NAME", "SESSIONS_TABLE_NAME", "USER_SESSION_MAPPING_TABLE_NAME")
 
-	if (
-		usersTableName == "" ||
-		passwordHashesTableName == "" ||
-		userPasswordHashMappingTableName == "" ||
-		sessionsTableName == "" ||
-		userSessionMappingTableName == ""){
-
+	if err != nil {
 		return messageTypes.Response{
-			StatusCode: http.StatusInternalServerError,
+			StatusCode: int(status.Code),
 			Body: CreateSessionResponse{
-				Status: messageTypes.Status{
-					Code:    http.StatusInternalServerError,
-					Message: fmt.Sprintf("Error getting environment variables: %v, %v, %v, %v, %v", 
-						sessionsTableName, 
-						userSessionMappingTableName, 
-						usersTableName, 
-						passwordHashesTableName, 
-						userPasswordHashMappingTableName,
-					),
-				},
+				Status:  status,
+				Session: messageTypes.Session{},
 			},
-		}, nil
+		}, err
 	}
+
+	usersTableName, passwordHashesTableName, userPasswordHashMappingTableName, sessionsTableName, userSessionMappingTableName := tableNames[0], tableNames[1], tableNames[2], tableNames[3], tableNames[4]
 
 	log.Info("Got environment variables")
 
 	// Parse request body
 	var createSessionRequest CreateSessionRequest
-	err := messageTypes.ParseRequestBody(request.Body, &createSessionRequest)
+	err = messageTypes.ParseRequestBody(request.Body, &createSessionRequest)
 
 	if err != nil {
 		return messageTypes.Response{
@@ -194,7 +175,17 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 
 	user, err := ValidateCredentials(databaseService, usersTableName, passwordHashesTableName, userPasswordHashMappingTableName, createSessionRequest.Credentials)
 
-	if err != nil {
+	if err == databaseErrors.ErrNoDocuments {
+		return messageTypes.Response{
+			StatusCode: http.StatusUnauthorized,
+			Body: CreateSessionResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusUnauthorized,
+					Message: "Invalid credentials",
+				},
+			},
+		}, nil
+	} else if err != nil {
 		return messageTypes.Response{
 			StatusCode: http.StatusInternalServerError,
 			Body: CreateSessionResponse{
@@ -240,41 +231,22 @@ func handleDeleteRequest(databaseService database.DatabaseService, request messa
 	log.Info("Started HandleDELETERequest")
 
 	// Get environment variables
-	usersTableName := os.Getenv("USERS_TABLE_NAME")
-	passwordHashesTableName := os.Getenv("PASSWORD_HASHES_TABLE_NAME")
-	userPasswordHashMappingTableName := os.Getenv("USER_PASSWORD_HASH_MAPPING_TABLE_NAME")
-	sessionsTableName := os.Getenv("SESSIONS_TABLE_NAME")
-	userSessionMappingTableName := os.Getenv("USER_SESSION_MAPPING_TABLE_NAME")
+	tableNames, status, err := utils.GetEnvironmentVariables("SESSIONS_TABLE_NAME", "USER_SESSION_MAPPING_TABLE_NAME")
 
-	if (
-		usersTableName == "" ||
-		passwordHashesTableName == "" ||
-		userPasswordHashMappingTableName == "" ||
-		sessionsTableName == "" ||
-		userSessionMappingTableName == "") {
-
+	if err != nil {
 		return messageTypes.Response{
-			StatusCode: http.StatusInternalServerError,
-			Body: CreateSessionResponse{
-				Status: messageTypes.Status{
-					Code:    http.StatusInternalServerError,
-					Message: fmt.Sprintf("Error getting environment variables: %v, %v, %v, %v, %v", 
-						sessionsTableName, 
-						userSessionMappingTableName, 
-						usersTableName, 
-						passwordHashesTableName, 
-						userPasswordHashMappingTableName,
-					),
-				},
-			},
-		}, nil
+			StatusCode: int(status.Code),
+			Body:       DeleteSessionResponse{Status: status},
+		}, err
 	}
+
+	sessionsTableName, userSessionMappingTableName := tableNames[0], tableNames[1]
 
 	log.Info("Got environment variables")
 
 	// Parse request body
 	var deleteSessionRequest DeleteSessionRequest
-	err := messageTypes.ParseRequestBody(request.Body, &deleteSessionRequest)
+	err = messageTypes.ParseRequestBody(request.Body, &deleteSessionRequest)
 
 	if err != nil {
 		return messageTypes.Response{

@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"services/lib/log"
 	messageTypes "services/lib/types"
+	"services/lib/utils"
 
 	"services/DatabaseService/database"
 	databaseErrors "services/DatabaseService/database/errors"
@@ -55,29 +55,25 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 	log.Info("Started HandleGETRequest")
 
 	// Get environment variables
-	usersTableName := os.Getenv("USERS_TABLE_NAME")
+	tableNames, status, err := utils.GetEnvironmentVariables("USERS_TABLE_NAME")
 
-	if usersTableName == "" {
+	if err != nil {
 		return messageTypes.Response{
-			StatusCode: http.StatusInternalServerError,
+			StatusCode: int(status.Code),
 			Body: GetUserResponse{
-				Status: messageTypes.Status{
-					Code: http.StatusInternalServerError,
-					Message: fmt.Sprintf(
-						"Environment variables not set: USERS_TABLE_NAME=%s",
-						usersTableName,
-					),
-				},
-				User: messageTypes.User{},
+				Status: status,
+				User:   messageTypes.User{},
 			},
-		}, nil
+		}, err
 	}
+
+	usersTableName := tableNames[0]
 
 	log.Info("Got environment variables")
 
 	// Parse request body
 	var getUserRequest GetUserRequest
-	err := messageTypes.ParseRequestBody(request.Body, &getUserRequest)
+	err = messageTypes.ParseRequestBody(request.Body, &getUserRequest)
 
 	if err != nil {
 		return messageTypes.Response{
@@ -87,7 +83,7 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 					Code:    http.StatusBadRequest,
 					Message: "Error parsing request body",
 				},
-				User:  messageTypes.User{},
+				User: messageTypes.User{},
 			},
 		}, err
 	}
@@ -104,7 +100,7 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 					Code:    http.StatusNotFound,
 					Message: "User not found",
 				},
-				User:  messageTypes.User{},
+				User: messageTypes.User{},
 			},
 		}, nil
 	} else if err != nil {
@@ -115,21 +111,21 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 					Code:    http.StatusInternalServerError,
 					Message: "Error getting user",
 				},
-				User:  user,
+				User: user,
 			},
 		}, err
 	}
 
 	log.Info("Got user")
 
-	return messageTypes.Response{	
+	return messageTypes.Response{
 		StatusCode: http.StatusOK,
 		Body: GetUserResponse{
 			Status: messageTypes.Status{
 				Code:    http.StatusOK,
 				Message: "User found",
 			},
-			User:  user,
+			User: user,
 		},
 	}, nil
 }
@@ -138,30 +134,24 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 	log.Info("Started HandlePOSTRequest")
 
 	// Get environment variables
-	usersTableName := os.Getenv("USERS_TABLE_NAME")
-	passwordHashesTableName := os.Getenv("PASSWORDHASH_TABLE_NAME")
-	userPasswordHashMappingTable := os.Getenv("USER_PASSWORD_HASH_MAPPING_TABLE")
+	tableNames, status, err := utils.GetEnvironmentVariables("USERS_TABLE_NAME", "PASSWORD_HASHES_TABLE_NAME", "USER_PASSWORD_HASH_MAPPING_TABLE_NAME")
 
-	if usersTableName == "" || passwordHashesTableName == "" || userPasswordHashMappingTable == ""{
+	if err != nil {
 		return messageTypes.Response{
-			StatusCode: http.StatusInternalServerError,
-			Body: CreateUserResponse{
-				Status: messageTypes.Status{
-					Code: http.StatusInternalServerError,
-					Message: fmt.Sprintf(
-						"Environment variables not set: USERS_TABLE_NAME=%s, PASSWORDHASH_TABLE_NAME=%s, USER_PASSWORD_HASH_MAPPING_TABLE=%s",
-						usersTableName, passwordHashesTableName, userPasswordHashMappingTable,
-					),
-				},
-			},
-		}, nil
+			StatusCode: int(status.Code),
+			Body:       CreateUserResponse{Status: status},
+		}, err
 	}
+
+	usersTableName := tableNames[0]
+	passwordHashesTableName := tableNames[1]
+	userPasswordHashMappingTable := tableNames[2]
 
 	log.Info("Got environment variables")
 
 	// Parse request body
 	var createUserRequest CreateUserRequest
-	err := messageTypes.ParseRequestBody(request.Body, &createUserRequest)
+	err = messageTypes.ParseRequestBody(request.Body, &createUserRequest)
 
 	if err != nil {
 		return messageTypes.Response{

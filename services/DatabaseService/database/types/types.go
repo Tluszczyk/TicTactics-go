@@ -9,8 +9,19 @@ const (
 	HASH_ID       FieldType = "HID"
 	PASSWORD_HASH FieldType = "PHASH"
 	ELO           FieldType = "ELO"
-	SID           FieldType = "SID"
-	TOKEN         FieldType = "TOKEN"
+
+	SID   FieldType = "SID"
+	TOKEN FieldType = "TOKEN"
+
+	GID             FieldType = "GID"
+	GAME_SETTINGS   FieldType = "GAME_SETTINGS"
+	BOARD           FieldType = "BOARD"
+	TURN            FieldType = "TURN"
+	WINNER          FieldType = "WINNER"
+	MOVE_HISTORY    FieldType = "MODE_HISTORY"
+	AVAILABLE_MOVES FieldType = "AVAILABLE_MOVES"
+	STATE           FieldType = "STATE"
+	TILE_BOARD      FieldType = "TILE_BOARD"
 )
 
 type DatabaseItem struct {

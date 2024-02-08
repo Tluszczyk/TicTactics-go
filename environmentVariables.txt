@@ -1,0 +1,12 @@
+export USERS_TABLE_NAME=users
+
+export PASSWORD_HASHES_TABLE_NAME=passwordHashes
+export USER_PASSWORD_HASH_MAPPING_TABLE_NAME=userPasswordHashMapping
+
+export SESSIONS_TABLE_NAME=sessions
+export USER_SESSION_MAPPING_TABLE_NAME=userSessionMapping
+
+export GAMES_TABLE_NAME=games
+export USER_GAME_MAPPING_TABLE_NAME=userGameMapping
+
+export DATABASE_DEPLOYMENT_OPTION=MONGO

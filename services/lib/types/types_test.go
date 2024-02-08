@@ -56,8 +56,8 @@ func TestGame(t *testing.T) {
 		Board:          "XO_OX___",
 		Turn:           "X",
 		Winner:         "",
-		MoveHistory:    "012345678",
-		AvailableMoves: "3,4,6,7,8",
+		MoveHistory:    []string{"A1","B2","C3"},
+		AvailableMoves: []string{"A1","B2","C3"},
 	}
 
 	jsonData, err := json.Marshal(game)

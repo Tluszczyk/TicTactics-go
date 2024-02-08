@@ -77,11 +77,7 @@ func ValidateCredentials(databaseService database.DatabaseService, usersTableNam
 		},
 	})
 
-	if err == databaseErrors.ErrNoDocuments {
-		log.Info("User password hash mapping not found")
-		return types.User{}, nil
-
-	} else if err != nil {
+	if err != nil {
 		return types.User{}, err
 	}
 

@@ -12,7 +12,7 @@ resource "aws_lambda_function" "user_management_service" {
   environment {
     variables = {
       USERS_TABLE_NAME = aws_dynamodb_table.this.name,
-      PASSWORDHASH_TABLE_NAME = aws_dynamodb_table.this.name,
+      PASSWORD_HASHES_TABLE_NAME = aws_dynamodb_table.this.name,
       ENDPOINT_URL = var.endpoint_url
     }
   }

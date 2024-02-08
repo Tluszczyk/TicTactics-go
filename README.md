@@ -25,8 +25,8 @@ It will be deployed as a REST API with the following endpoint groups:
 | Endpoint | Description               | Progress                        |
 |----------|---------------------------|---------------------------------|
 | `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/100)|
-| `/user`  | User management endpoints |![](https://progress-bar.dev/100)|
-| `/game`  | Game management endpoints |![](https://progress-bar.dev/0)  |
+| `/user`  | User management endpoints |![](https://progress-bar.dev/66) |
+| `/game`  | Game management endpoints |![](https://progress-bar.dev/16) |
 
 #### Authentication Endpoints
 
@@ -42,17 +42,18 @@ It will be deployed as a REST API with the following endpoint groups:
 |----------|------  |------------------|---------------------------------|
 | `/user`  | GET    | Get a user       |![](https://progress-bar.dev/100)|
 |          | POST   | Create a user    |![](https://progress-bar.dev/100)|
+|          | DELETE | Delete a user    |![](https://progress-bar.dev/0)  |
 
 #### Game Management Endpoints
 
-| Endpoint           | Method | Description      | Progress                      |
-|--------------------|--------|------------------|-------------------------------|
-| `/game/create`     | POST   | Create a game    |![](https://progress-bar.dev/0)|
-| `/game/join`       | PUT    | Join a game      |![](https://progress-bar.dev/0)|
-| `/game/leave`      | PUT    | Leave a game     |![](https://progress-bar.dev/0)|
-| `/game/list-games` | GET    | List games       |![](https://progress-bar.dev/0)|
-| `/game`            | GET    | Get a game       |![](https://progress-bar.dev/0)|
-|                    | PUT    | Update a game    |![](https://progress-bar.dev/0)|
+| Endpoint           | Method | Description      | Progress                        |
+|--------------------|--------|------------------|---------------------------------|
+| `/game/create`     | POST   | Create a game    |![](https://progress-bar.dev/100)|
+| `/game/join`       | PUT    | Join a game      |![](https://progress-bar.dev/0)  |
+| `/game/leave`      | PUT    | Leave a game     |![](https://progress-bar.dev/0)  |
+| `/game/list-games` | GET    | List games       |![](https://progress-bar.dev/0)  |
+| `/game`            | GET    | Get a game       |![](https://progress-bar.dev/0)  |
+|                    | PUT    | Update a game    |![](https://progress-bar.dev/0)  |
 
 ### 💾 Database
 #### 📜 Schema ![](https://progress-bar.dev/100)
@@ -86,7 +87,7 @@ Since one of the implementation options is DynamoDB, before designing the databa
 1. Session Access Patterns
     1. Get a session by uid
 
-#### 💾 DynamoDB Data Model ![](https://progress-bar.dev/30)
+#### 💾 DynamoDB Data Model ![](https://progress-bar.dev/100)
 #### Design
 Based on the access patterns described in the code, we can design a DynamoDB table with the following attributes:
 
@@ -133,6 +134,12 @@ Session Access Patterns
 1. Get a session by uid
 
     Query the table with ```PK = SESSION#{sessionId} ```and``` SK = SESSION.```
+
+## Game Rules ![](https://progress-bar.dev/0)
+The game is a variation of the classic Tic-Tac-Toe game. The game is played on a 3x3 grid, where each cell can contain a 3x3 grid
+
+// TODO: Add game rules description
+
 ## Possible Deployment Options
 ### 🐳 Docker  ![](https://progress-bar.dev/100)
 One docker image contains the API and the other contains the database. The API will be deployed as a REST API and the database will be deployed as a MongoDB instance.
@@ -154,3 +161,14 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 <div style="text-align: center;">
     <img src="documentation/resources/K8sDeploymentOption.svg" alt=""/>
 </div>
+
+## Ideas for the future
+* AI for the game
+* Authentication cache
+* Automated tests
+* Board record compression
+* Game rules customistaion
+* Session TTL
+
+## Testing *In progress* 
+![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)

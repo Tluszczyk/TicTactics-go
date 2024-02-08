@@ -41,8 +41,8 @@ type Session struct {
 
 type SessionID string
 type UserSessionMapping struct {
-	UID    UserID
-	SID    SessionID
+	UID UserID
+	SID SessionID
 }
 
 type UserID string
@@ -53,15 +53,26 @@ type User struct {
 	Elo      int
 }
 
+type GameState string
+
+const (
+	WATING_FOR_OPPONENT GameState = "WAITING_FOR_OPPONENT"
+	IN_PROGRESS         GameState = "IN_PROGRESS"
+	FINISHED            GameState = "FINISHED"
+)
+
+type GameID string
 type Game struct {
-	GID            string `json:"gid"`
-	UID1           string `json:"uid1"`
-	UID2           string `json:"uid2"`
-	Board          string `json:"board"`
-	Turn           string `json:"turn"`
-	Winner         string `json:"winner"`
-	MoveHistory    string `json:"move_history"`
-	AvailableMoves string `json:"available_moves"`
+	GID            GameID    `json:"gid"`
+	UID1           string    `json:"uid1"`
+	UID2           string    `json:"uid2"`
+	Board          string    `json:"board"`
+	Turn           string    `json:"turn"`
+	Winner         string    `json:"winner"`
+	MoveHistory    []string  `json:"move_history"`
+	AvailableMoves []string  `json:"available_moves"`
+	State          GameState `json:"state"`
+	TileBoard      string    `json:"tile_board"`
 }
 
 type GameSettings struct{}
@@ -72,3 +83,12 @@ type GameFilter struct {
 	Turn            string `json:"turn"`
 	Winner          string `json:"winner"`
 }
+
+type GameWinner string
+
+const (
+	X    GameWinner = "X"
+	O    GameWinner = "O"
+	TIE  GameWinner = "T"
+	NONE GameWinner = "."
+)

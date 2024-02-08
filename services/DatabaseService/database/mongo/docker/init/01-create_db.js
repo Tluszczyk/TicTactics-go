@@ -5,6 +5,8 @@ collections=[
     "userPasswordHashMapping",
     "sessions",
     "userSessionMapping",
+    "games",
+    "userGameMapping"
 ];
 
 // Get environment variables

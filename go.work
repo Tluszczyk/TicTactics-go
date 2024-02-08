@@ -6,4 +6,6 @@ use ./services/IOService
 
 use ./services/UserManagementService
 
+use ./services/GameManagementService
+
 use ./services/DatabaseService
