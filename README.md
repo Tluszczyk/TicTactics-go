@@ -9,10 +9,53 @@ This application is a web-based implementation of the game Tic-Tactics. The game
 
 This project is an attempt to recreate the game.
 
-## 📜 Game Rules ![](https://progress-bar.dev/0)
-The game is a variation of the classic Tic-Tac-Toe game. The game is played on a 3x3 grid, where each cell can contain a 3x3 grid
+## 📜 Game Rules
+*TODO replace diagrams with screenshots from frontend*
 
-// TODO: Add game rules description
+The game is a variation of the classic Tic-Tac-Toe game. The game is played on a 3x3 grid of Tiles, where each Tile contains a 3x3 grid of Cells.
+
+**Starting Moves:**
+
+The first player can make their initial move on any Tile on the board.
+The second player responds by playing in the corresponding Tile.
+
+<div style="text-align: center;">
+    <img src="documentation/resources/Grid_with_first_move.svg" alt=""/>
+</div>
+
+**Subsequent Moves:**
+
+Each subsequent move must be played in the corresponding Tile on the board based on the opponent's move.
+For example, if X played in the upper left Cell of a Tile, O must play in the upper left Tile of the board. You cannot however force your opponent to play on a Tile that they've just played on.
+
+<div style="text-align: center;">
+    <img src="documentation/resources/Grid_with_second_move.svg" alt=""/>
+</div>
+
+**Tile Winning Conditions:**
+
+A player wins a Tile when they achieve three of their symbols in a row (horizontally, vertically, or diagonally).
+
+**Game Winning Conditions:**
+
+The game is won by a player when they secure victories in three Tiles in a row (horizontally, vertically, or diagonally).
+
+<div style="text-align: center;">
+    <img src="documentation/resources/Grid_O_won.svg" alt=""/>
+</div>
+
+**Continuous Play on Won Tiles:**
+
+Players can continue to place moves on Tiles that have already been won.
+
+**Filled Tile Flexibility:**
+
+When a player is compelled to play on a fully filled Tile, they are permitted to make their move anywhere else on the board.
+
+**Game End Conditions:**
+
+The game concludes when either player wins or when all Cells on the board have been played.
+If no player has won three Tiles in a row, the game results in a draw.
 
 ## 🏛️ Architecture ![](https://progress-bar.dev/100)
 
