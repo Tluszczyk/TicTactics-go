@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/google/uuid"
 
 	"services/lib/log"
@@ -96,7 +98,6 @@ func JoinGame(databaseService database.DatabaseService, gamesTableName string, u
 				databaseTypes.STATE: messageTypes.IN_PROGRESS,
 			},
 		},
-
 	})
 
 	if err != nil {
@@ -122,4 +123,54 @@ func JoinGame(databaseService database.DatabaseService, gamesTableName string, u
 
 	log.Info("Finished JoinGame")
 	return nil
+}
+
+func GetGame(databaseService database.DatabaseService, gamesTableName string, gid messageTypes.GameID) (messageTypes.Game, error) {
+	log.Info("Started GetGame")
+
+	// Get game
+	log.Info("Get game")
+
+	item, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: gamesTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting game: %v", err))
+		return messageTypes.Game{}, err
+	}
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error marshalling game: %v", err))
+		return messageTypes.Game{}, err
+	}
+
+	// Convert move history to []string
+	moveHistory := []string{}
+	for _, move := range item.Item.Attributes[databaseTypes.MOVE_HISTORY].(primitive.A) {
+		moveHistory = append(moveHistory, move.(string))
+	}
+
+	// Convert available moves to []string
+	availableMoves := []string{}
+	for _, move := range item.Item.Attributes[databaseTypes.AVAILABLE_MOVES].(primitive.A) {
+		availableMoves = append(availableMoves, move.(string))
+	}
+
+	game := messageTypes.Game{
+		GID:            gid,
+		Board:          item.Item.Attributes[databaseTypes.BOARD].(string),
+		Turn:           item.Item.Attributes[databaseTypes.TURN].(string),
+		Winner:         item.Item.Attributes[databaseTypes.WINNER].(string),
+		MoveHistory:    moveHistory,
+		AvailableMoves: availableMoves,
+		State:          messageTypes.GameState(item.Item.Attributes[databaseTypes.STATE].(string)),
+		TileBoard:      item.Item.Attributes[databaseTypes.TILE_BOARD].(string),
+	}
+
+	log.Info("Finished GetGame")
+	return game, nil
 }

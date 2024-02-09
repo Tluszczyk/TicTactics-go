@@ -21,3 +21,13 @@ type JoinGameRequest struct {
 type JoinGameResponse struct {
 	Status types.Status `json:"status"`
 }
+
+type GetGameRequest struct {
+	Session types.Session `json:"session"`
+	GID     types.GameID  `json:"gid"`
+}
+
+type GetGameResponse struct {
+	Status types.Status `json:"status"`
+	Game   types.Game   `json:"game"`
+}

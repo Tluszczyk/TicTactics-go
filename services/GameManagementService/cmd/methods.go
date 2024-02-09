@@ -61,9 +61,74 @@ func HandleRequest(request messageTypes.Request) (messageTypes.Response, error) 
 func handleGetRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
 	log.Info("Started Get")
 
+	// Get environment variables
+	tableNames, status, err := utils.GetEnvironmentVariables("GAMES_TABLE_NAME")
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: int(status.Code),
+			Body:       CreateGameResponse{Status: status},
+		}, err
+	}
+
+	gamesTableName := tableNames[0]
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var getGameRequest GetGameRequest
+	err = messageTypes.ParseRequestBody(request.Body, &getGameRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: GetGameResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Parsed request body")
+
+	// Get game
+	game, err := GetGame(databaseService, gamesTableName, getGameRequest.GID)
+
+	if err == databaseErrors.ErrNoDocuments {
+		return messageTypes.Response{
+			StatusCode: http.StatusNotFound,
+			Body: GetGameResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusNotFound,
+					Message: "Game not found",
+				},
+			},
+		}, err
+	} else if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: GetGameResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error getting game",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Got game")
+
 	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
+		StatusCode: http.StatusOK,
+		Body: GetGameResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "Game found",
+			},
+			Game: game,
+		},
 	}, nil
 }
 

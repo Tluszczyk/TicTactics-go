@@ -74,7 +74,7 @@ It will be deployed as a REST API with the following endpoint groups:
 |----------|---------------------------|---------------------------------|
 | `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/100)|
 | `/user`  | User management endpoints |![](https://progress-bar.dev/66) |
-| `/game`  | Game management endpoints |![](https://progress-bar.dev/33) |
+| `/game`  | Game management endpoints |![](https://progress-bar.dev/50) |
 
 #### Authentication Endpoints
 
@@ -100,7 +100,7 @@ It will be deployed as a REST API with the following endpoint groups:
 | `/game/join`       | PUT    | Join a game      |![](https://progress-bar.dev/100)|
 | `/game/leave`      | PUT    | Leave a game     |![](https://progress-bar.dev/0)  |
 | `/game/list-games` | GET    | List games       |![](https://progress-bar.dev/0)  |
-| `/game`            | GET    | Get a game       |![](https://progress-bar.dev/0)  |
+| `/game`            | GET    | Get a game       |![](https://progress-bar.dev/100)|
 |                    | PUT    | Update a game    |![](https://progress-bar.dev/0)  |
 
 ### 💾 Database

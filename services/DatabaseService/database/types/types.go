@@ -20,7 +20,7 @@ const (
 	BOARD           FieldType = "BOARD"
 	TURN            FieldType = "TURN"
 	WINNER          FieldType = "WINNER"
-	MOVE_HISTORY    FieldType = "MODE_HISTORY"
+	MOVE_HISTORY    FieldType = "MOVE_HISTORY"
 	AVAILABLE_MOVES FieldType = "AVAILABLE_MOVES"
 	STATE           FieldType = "STATE"
 	TILE_BOARD      FieldType = "TILE_BOARD"

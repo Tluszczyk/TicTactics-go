@@ -65,8 +65,6 @@ const (
 type GameID string
 type Game struct {
 	GID            GameID    `json:"gid"`
-	UID1           string    `json:"uid1"`
-	UID2           string    `json:"uid2"`
 	Board          string    `json:"board"`
 	Turn           string    `json:"turn"`
 	Winner         string    `json:"winner"`

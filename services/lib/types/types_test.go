@@ -51,13 +51,13 @@ func TestSession(t *testing.T) {
 func TestGame(t *testing.T) {
 	game := Game{
 		GID:            "123",
-		UID1:           "user1",
-		UID2:           "user2",
 		Board:          "XO_OX___",
 		Turn:           "X",
 		Winner:         "",
 		MoveHistory:    []string{"A1","B2","C3"},
 		AvailableMoves: []string{"A1","B2","C3"},
+		State:          WATING_FOR_OPPONENT,
+		TileBoard:      "XO_OX___",
 	}
 
 	jsonData, err := json.Marshal(game)
