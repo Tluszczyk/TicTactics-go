@@ -7,6 +7,7 @@ type ErrorResponse struct {
 
 type Request struct {
 	Body       string `json:"body"`
+	Path       string `json:"path"`
 	HTTPMethod string `json:"httpMethod"`
 }
 

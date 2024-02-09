@@ -53,6 +53,7 @@ func handlerMonad(handler func(types.Request) (types.Response, error), requiresA
 		}
 
 		request := types.Request{
+			Path:       c.Request.URL.Path,
 			HTTPMethod: c.Request.Method,
 			Body:       string(bodyBytes),
 		}

@@ -2,8 +2,8 @@ package mongo
 
 import (
 	"context"
-	"fmt"
 	"errors"
+	"fmt"
 	databaseErrors "services/DatabaseService/database/errors"
 	"services/DatabaseService/database/types"
 	"services/lib/log"
@@ -154,7 +154,7 @@ func (d *MongoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemInp
 
 func (d *MongoDatabaseService) DeleteItemFromDatabase(input *types.DatabaseDeleteItemInput) (*types.DatabaseDeleteItemOutput, error) {
 	log.Info("Started DeleteItemFromDatabase")
-	
+
 	log.Info("Get the collection")
 	// Get the collection
 	collectionName := input.TableName
@@ -181,7 +181,42 @@ func (d *MongoDatabaseService) DeleteItemFromDatabase(input *types.DatabaseDelet
 
 func (d *MongoDatabaseService) UpdateItemInDatabase(input *types.DatabaseUpdateItemInput) (*types.DatabaseUpdateItemOutput, error) {
 	log.Info("Started UpdateItemInDatabase")
-	return nil, errors.New("not implemented")
+
+	log.Info("Get the collection, key & item")
+	// Get the collection
+	collectionName := input.TableName
+	collection := d.database.Collection(collectionName)
+
+	log.Info("Marshal key")
+	// Marshal key
+	marshalledKey, err := d.MarshallDatabaseItem(&input.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Marshal update")
+	// Marshal update
+	marshalledUpdate, err := d.MarshallDatabaseItem(&input.Item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Convert marshalled update to a mongo update item")
+	// Convert marshalled update to a mongo update item
+	update := bson.D{{Key: "$set", Value: marshalledUpdate}}
+
+	log.Info("Execute update item")
+	// Execute update item
+	_, err = collection.UpdateOne(context.Background(), marshalledKey, update)
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Update item successful")
+	// Return result
+	return &types.DatabaseUpdateItemOutput{}, nil
 }
 
 func (d *MongoDatabaseService) QueryDatabase(input *types.DatabaseQueryInput) (*types.DatabaseQueryOutput, error) {

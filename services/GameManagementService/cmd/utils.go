@@ -78,3 +78,48 @@ func CreateGame(databaseService database.DatabaseService, gamesTableName string,
 	log.Info("Finished CreateGame")
 	return nil
 }
+
+func JoinGame(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, uid messageTypes.UserID, gid messageTypes.GameID) error {
+	log.Info("Started JoinGame")
+
+	// Update game
+	log.Info("Update game")
+
+	_, err := databaseService.UpdateItemInDatabase(&databaseTypes.DatabaseUpdateItemInput{
+		TableName: gamesTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+		},
+		Item: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+			Attributes: map[databaseTypes.FieldType]interface{}{
+				databaseTypes.STATE: messageTypes.IN_PROGRESS,
+			},
+		},
+
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating game: %v", err))
+		return err
+	}
+
+	// Save user game mapping
+	log.Info("Save user game mapping")
+
+	_, err = databaseService.PutItemInDatabase(&databaseTypes.DatabasePutItemInput{
+		TableName: userGameMappingTableName,
+		Item: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error saving user game mapping: %v", err))
+		return err
+	}
+
+	log.Info("Finished JoinGame")
+	return nil
+}
