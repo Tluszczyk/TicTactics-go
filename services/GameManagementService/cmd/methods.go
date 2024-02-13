@@ -304,9 +304,63 @@ func handleJoinRequest(databaseService database.DatabaseService, request message
 func handleLeaveRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
 	log.Info("Started Leave")
 
+	// Get environment variables
+	tableNames, status, err := utils.GetEnvironmentVariables("GAMES_TABLE_NAME", "USER_GAME_MAPPING_TABLE_NAME", "USERS_TABLE_NAME")
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: int(status.Code),
+			Body:       CreateGameResponse{Status: status},
+		}, err
+	}
+
+	gamesTableName, userGameMappingTable, usersTableName := tableNames[0], tableNames[1], tableNames[2]
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var leaveGameRequest LeaveGameRequest
+	err = messageTypes.ParseRequestBody(request.Body, &leaveGameRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: LeaveGameResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Parsed request body")
+
+	// Leave game
+	err = LeaveGame(databaseService, gamesTableName, userGameMappingTable, usersTableName, leaveGameRequest.Session.UID, leaveGameRequest.GID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: LeaveGameResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error leaving game",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Left game")
+
 	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
+		StatusCode: http.StatusOK,
+		Body: LeaveGameResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "Game left",
+			},
+		},
 	}, nil
 }
 

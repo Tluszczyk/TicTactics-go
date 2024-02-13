@@ -125,6 +125,97 @@ func (d *MongoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItemI
 	}, nil
 }
 
+func (d *MongoDatabaseService) GetItemsFromDatabase(input *types.DatabaseGetItemsInput) (*types.DatabaseGetItemsOutput, error) {
+	log.Info("Started GetItemsFromDatabase")
+
+	log.Info(fmt.Sprintf("Get the collection and the key: %v, %v", input.TableName, input.Key))
+	// Get the collection
+	collectionName, key := input.TableName, input.Key
+	collection := d.database.Collection(collectionName)
+
+	log.Info("Marshal key")
+	// Marshal key
+	marshalled, err := d.MarshallDatabaseItem(&key)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Convert marshalled key to a mongo filter item")
+	// Convert marshalled key to a mongo filter item
+	filter, err := bson.Marshal(marshalled)
+	if err != nil {
+		return nil, errors.New("marshalled key is not of type bson.D")
+	}
+
+	log.Info(fmt.Sprintf("marshalled key: %+v\n", marshalled))
+
+	log.Info("Execute get items")
+	// Find documents that match the filter
+	cursor, err := collection.Find(context.Background(), filter)
+
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var results []bson.M
+
+	// Iterate over the cursor and print the results
+	for cursor.Next(context.Background()) {
+		var result bson.M
+
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
+
+	// Check for errors during cursor iteration
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	log.Info("Unmarshal results to []map[string]interface{}")
+	// Unmarshal results to []map[string]interface{}
+	var resultsAsMap []map[string]interface{}
+	for _, result := range results {
+		var resultAsMap map[string]interface{}
+		resultAsBSON, err := bson.Marshal(result)
+		if err != nil {
+			return nil, err
+		}
+
+		err = bson.Unmarshal(resultAsBSON, &resultAsMap)
+		if err != nil {
+			return nil, err
+		}
+		resultsAsMap = append(resultsAsMap, resultAsMap)
+	}
+
+	var items []types.DatabaseItem
+
+	for _, resultAsMap := range resultsAsMap {
+
+		log.Info("Unmarshal result to []DatabaseItem")
+		// Unmarshal result to []DatabaseItem
+
+		var item types.DatabaseItem
+		err = d.UnmarshallDatabaseItem(resultAsMap, &item)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+
+	log.Info(fmt.Sprintf("Results: %+v\n", items))
+
+	// Return result
+	return &types.DatabaseGetItemsOutput{
+		Items: items,
+	}, nil
+}
+
 func (d *MongoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemInput) (*types.DatabasePutItemOutput, error) {
 	log.Info("Started PutItemInDatabase")
 

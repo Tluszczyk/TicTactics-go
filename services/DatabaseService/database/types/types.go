@@ -24,6 +24,8 @@ const (
 	AVAILABLE_MOVES FieldType = "AVAILABLE_MOVES"
 	STATE           FieldType = "STATE"
 	TILE_BOARD      FieldType = "TILE_BOARD"
+
+	SYMBOL FieldType = "SYMBOL"
 )
 
 type DatabaseItem struct {
@@ -52,6 +54,11 @@ type DatabaseGetItemInput struct {
 	Key       DatabaseItem
 }
 
+type DatabaseGetItemsInput struct {
+	TableName string
+	Key       DatabaseItem
+}
+
 type DatabasePutItemInput struct {
 	TableName string
 	Item      DatabaseItem
@@ -76,6 +83,10 @@ type DatabaseQueryInput struct {
 // Outputs
 type DatabaseGetItemOutput struct {
 	Item DatabaseItem
+}
+
+type DatabaseGetItemsOutput struct {
+	Items []DatabaseItem
 }
 
 type DatabasePutItemOutput struct {

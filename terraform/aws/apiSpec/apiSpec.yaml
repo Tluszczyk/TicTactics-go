@@ -10,6 +10,9 @@ tags:
     description: User Management Service
   - name: game
     description: Game Management Service
+servers:
+  - url: http://localhost:8080
+    description: Local server
 paths:
     /user:
         post:

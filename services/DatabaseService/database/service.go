@@ -12,6 +12,9 @@ type DatabaseService interface {
 	// GetItemFromDatabase returns an item from the database with the given key
 	GetItemFromDatabase(*types.DatabaseGetItemInput) (*types.DatabaseGetItemOutput, error)
 
+	// GetItemsFromDatabase returns all items from the database with the given key
+	GetItemsFromDatabase(*types.DatabaseGetItemsInput) (*types.DatabaseGetItemsOutput, error)
+
 	// PutItemInDatabase puts an item in the database with the given key
 	PutItemInDatabase(*types.DatabasePutItemInput) (*types.DatabasePutItemOutput, error)
 

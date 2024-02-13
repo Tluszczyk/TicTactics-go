@@ -101,6 +101,11 @@ func (d *DynamoDatabaseService) GetItemFromDatabase(input *types.DatabaseGetItem
 	}, nil
 }
 
+func (d *DynamoDatabaseService) GetItemsFromDatabase(input *types.DatabaseGetItemsInput) (*types.DatabaseGetItemsOutput, error) {
+	log.Info("Started GetItemsFromDatabase")
+	return nil, errors.New("not implemented")
+}
+
 func (d *DynamoDatabaseService) PutItemInDatabase(input *types.DatabasePutItemInput) (*types.DatabasePutItemOutput, error) {
 	log.Info("Started PutItemInDatabase")
 

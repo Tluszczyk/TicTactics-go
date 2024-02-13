@@ -174,3 +174,300 @@ func GetGame(databaseService database.DatabaseService, gamesTableName string, gi
 	log.Info("Finished GetGame")
 	return game, nil
 }
+
+func LeaveGame(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, usersTableName string, uid messageTypes.UserID, gid messageTypes.GameID) error {
+	log.Info("Started LeaveGame")
+
+	// Get players' symbols
+	log.Info("Get users from game")
+
+	symbolPlayerMapping, err := getSymbolPlayerMapping(databaseService, userGameMappingTableName, gid)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting symbol player mapping: %v", err))
+		return err
+	}
+
+	// Get winner
+	var endState messageTypes.GameWinner
+	if symbolPlayerMapping["O"] == uid {
+		endState = messageTypes.X
+	} else {
+		endState = messageTypes.O
+	}
+
+	// Update game
+	log.Info("Update game")
+
+	_, err = databaseService.UpdateItemInDatabase(&databaseTypes.DatabaseUpdateItemInput{
+		TableName: gamesTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+		},
+		Item: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+			Attributes: map[databaseTypes.FieldType]interface{}{
+				databaseTypes.WINNER: endState,
+				databaseTypes.STATE:  messageTypes.FINISHED,
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating game: %v", err))
+		return err
+	}
+
+	// Get players' UIDs
+	player1UID := symbolPlayerMapping["O"]
+	player2UID := symbolPlayerMapping["X"]
+
+	// Get result
+	var result float64
+	switch endState {
+	case messageTypes.X:
+		result = 1
+	case messageTypes.O:
+		result = 0
+	case messageTypes.TIE:
+		result = 0.5
+	}
+
+	// Update ELO ratings
+	log.Info("Update ELO ratings")
+
+	newPlayer1ELO, newPlayer2ELO, err := getUpdatedELORatings(databaseService, usersTableName, gid, player1UID, player2UID, result)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating ELO ratings: %v", err))
+		return err
+	}
+
+	// Update player 1 ELO
+	log.Info("Update player 1 ELO")
+
+	err = updatePLayerELO(databaseService, usersTableName, player1UID, newPlayer1ELO)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating player 1 ELO: %v", err))
+		return err
+	}
+
+	// Update player 2 ELO
+	log.Info("Update player 2 ELO")
+
+	err = updatePLayerELO(databaseService, usersTableName, player2UID, newPlayer2ELO)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating player 2 ELO: %v", err))
+		return err
+	}
+
+	log.Info("Finished ConcludeGame")
+	return nil
+}
+
+func ConcludeGame(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, usersTableName string, gid messageTypes.GameID, endState messageTypes.GameWinner) error {
+	log.Info("Started ConcludeGame")
+
+	// Update game
+	log.Info("Update game")
+
+	_, err := databaseService.UpdateItemInDatabase(&databaseTypes.DatabaseUpdateItemInput{
+		TableName: gamesTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+		},
+		Item: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+			Attributes: map[databaseTypes.FieldType]interface{}{
+				databaseTypes.WINNER: endState,
+				databaseTypes.STATE:  messageTypes.FINISHED,
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating game: %v", err))
+		return err
+	}
+
+	// Get players' symbols
+	log.Info("Get users from game")
+
+	symbolPlayerMapping, err := getSymbolPlayerMapping(databaseService, userGameMappingTableName, gid)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting symbol player mapping: %v", err))
+		return err
+	}
+
+	// Get players' UIDs
+	player1UID := symbolPlayerMapping["O"]
+	player2UID := symbolPlayerMapping["X"]
+
+	// Get result
+	var result float64
+	switch endState {
+	case messageTypes.X:
+		result = 1
+	case messageTypes.O:
+		result = 0
+	case messageTypes.TIE:
+		result = 0.5
+	}
+
+	// Update ELO ratings
+	log.Info("Update ELO ratings")
+
+	newPlayer1ELO, newPlayer2ELO, err := getUpdatedELORatings(databaseService, usersTableName, gid, player1UID, player2UID, result)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating ELO ratings: %v", err))
+		return err
+	}
+
+	// Update player 1 ELO
+	log.Info("Update player 1 ELO")
+
+	err = updatePLayerELO(databaseService, usersTableName, player1UID, newPlayer1ELO)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating player 1 ELO: %v", err))
+		return err
+	}
+
+	// Update player 2 ELO
+	log.Info("Update player 2 ELO")
+
+	err = updatePLayerELO(databaseService, usersTableName, player2UID, newPlayer2ELO)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating player 2 ELO: %v", err))
+		return err
+	}
+
+	log.Info("Finished ConcludeGame")
+	return nil
+}
+
+func getSymbolPlayerMapping(databaseService database.DatabaseService, userGameMappingTableName string, gid messageTypes.GameID) (map[string]messageTypes.UserID, error) {
+	log.Info("Started getSymbolPlayerMapping")
+
+	// Get users from game
+	log.Info("Get users from game")
+
+	usersOutput, err := databaseService.GetItemsFromDatabase(&databaseTypes.DatabaseGetItemsInput{
+		TableName: userGameMappingTableName,
+		Key: databaseTypes.DatabaseItem{
+			SK: map[databaseTypes.FieldType]interface{}{databaseTypes.GID: gid},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting users from game: %v", err))
+		return nil, err
+	}
+
+	if len(usersOutput.Items) != 2 {
+		log.Error(fmt.Sprintf("Error getting users from game: %v, not 2 usergamemappings", err))
+		return nil, err
+	}
+
+	// Get user UIDs
+	player1UID := messageTypes.UserID(usersOutput.Items[0].PK[databaseTypes.UID].(string))
+	player2UID := messageTypes.UserID(usersOutput.Items[1].PK[databaseTypes.UID].(string))
+
+	// Get players' symbols
+	player1Symbol := usersOutput.Items[0].Attributes[databaseTypes.SYMBOL].(string)
+	player2Symbol := usersOutput.Items[1].Attributes[databaseTypes.SYMBOL].(string)
+
+	// Create symbol player mapping
+	symbolPlayerMapping := map[string]messageTypes.UserID{
+		player1Symbol: player1UID,
+		player2Symbol: player2UID,
+	}
+
+	return symbolPlayerMapping, nil
+}
+
+func getUserELO(databaseService database.DatabaseService, usersTableName string, uid messageTypes.UserID) (float64, error) {
+	log.Info("Started getUserELO")
+
+	// Get user ELO rating
+	log.Info("Get user ELO rating")
+
+	userELORatingOutput, err := databaseService.GetItemFromDatabase(&databaseTypes.DatabaseGetItemInput{
+		TableName: usersTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting user ELO rating: %v", err))
+		return 0, err
+	}
+
+	userELORating := float64(userELORatingOutput.Item.Attributes[databaseTypes.ELO].(int32))
+
+	return userELORating, nil
+}
+
+func getUpdatedELORatings(databaseService database.DatabaseService, usersTableName string, gid messageTypes.GameID, player1UID messageTypes.UserID, player2UID messageTypes.UserID, result float64) (float64, float64, error) {
+	log.Info("Started updateELORatings")
+
+	// Get winner ELO rating
+	log.Info("Get winner ELO rating")
+
+	player1ELO, err := getUserELO(databaseService, usersTableName, player1UID)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting winner ELO rating: %v", err))
+		return 0, 0, err
+	}
+
+	// Get loser ELO rating
+	log.Info("Get loser ELO rating")
+
+	player2ELO, err := getUserELO(databaseService, usersTableName, player2UID)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting loser ELO rating: %v", err))
+		return 0, 0, err
+	}
+
+	// Calculate new ELO ratings
+	log.Info("Calculate new ELO ratings")
+
+	newPlayer1ELO, newPlayer2ELO := GameLogicService.CalculateEloRating(player1ELO, player2ELO, result)
+
+	return newPlayer1ELO, newPlayer2ELO, nil
+}
+
+func updatePLayerELO(databaseService database.DatabaseService, usersTableName string, uid messageTypes.UserID, newELO float64) error {
+	log.Info("Started updatePLayerELO")
+
+	// Update user ELO rating
+	log.Info("Update user ELO rating")
+
+	_, err := databaseService.UpdateItemInDatabase(&databaseTypes.DatabaseUpdateItemInput{
+		TableName: usersTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		},
+		Item: databaseTypes.DatabaseItem{
+			Attributes: map[databaseTypes.FieldType]interface{}{
+				databaseTypes.ELO: newELO,
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error updating user ELO rating: %v", err))
+		return err
+	}
+
+	log.Info("Finished updatePLayerELO")
+	return nil
+}
