@@ -9,7 +9,7 @@ const (
 	UID           FieldType = "UID"
 	EMAIL         FieldType = "EMAIL"
 	HASH_ID       FieldType = "HID"
-	PASSWORD_HASH FieldType = "PHASH"
+	PASSWORD_HASH FieldType = "HASH"
 	ELO           FieldType = "ELO"
 
 	SID   FieldType = "SID"

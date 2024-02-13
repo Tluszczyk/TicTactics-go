@@ -397,34 +397,35 @@ paths:
                 timeoutInMillis: 29000
                 passthroughBehavior: "when_no_match"
                 type: "aws_proxy"
+    /game/move:
         put:
             tags:
             - game
-            summary: Update game
+            summary: Put a move
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UpdateGameRequest'
+                            $ref: '#/components/schemas/PutMoveRequest'
             responses:
                 '200':
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UpdateGameResponse'
+                                $ref: '#/components/schemas/PutMoveResponse'
                 '400':
                     description: Bad Request
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UpdateGameResponse'
+                                $ref: '#/components/schemas/PutMoveResponse'
                 '500':
                     description: Internal Server Error
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UpdateGameResponse'
+                                $ref: '#/components/schemas/PutMoveResponse'
             x-amazon-apigateway-integration:
                 uri: ${game_management_lambda_uri}
                 httpMethod: "POST"
@@ -708,7 +709,7 @@ components:
                     $ref: '#/components/schemas/Game'
             description: Get game response
 
-        UpdateGameRequest:
+        PutMoveRequest:
             type: object
             properties:
                 session:
@@ -719,7 +720,7 @@ components:
                     type: string
             description: Update game request
         
-        UpdateGameResponse:
+        PutMoveResponse:
             type: object
             properties:
                 Status:

@@ -54,8 +54,8 @@ func TestGame(t *testing.T) {
 		Board:          "XO_OX___",
 		Turn:           "X",
 		Winner:         "",
-		MoveHistory:    []string{"A1","B2","C3"},
-		AvailableMoves: []string{"A1","B2","C3"},
+		MoveHistory:    []CellPosition{"A1","B2","C3"},
+		AvailableMoves: []CellPosition{"A1","B2","C3"},
 		State:          WATING_FOR_OPPONENT,
 		TileBoard:      "XO_OX___",
 	}

@@ -58,3 +58,13 @@ type ListGamesResponse struct {
 	Status types.Status `json:"status"`
 	Games  []types.Game `json:"games"`
 }
+
+type PutMoveRequest struct {
+	Session types.Session      `json:"session"`
+	GID     types.GameID       `json:"gid"`
+	Move    types.CellPosition `json:"move"`
+}
+
+type PutMoveResponse struct {
+	Status types.Status `json:"status"`
+}

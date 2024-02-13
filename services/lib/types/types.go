@@ -64,14 +64,14 @@ const (
 
 type GameID string
 type Game struct {
-	GID            GameID    `json:"gid"`
-	Board          string    `json:"board"`
-	Turn           string    `json:"turn"`
-	Winner         string    `json:"winner"`
-	MoveHistory    []string  `json:"move_history"`
-	AvailableMoves []string  `json:"available_moves"`
-	State          GameState `json:"state"`
-	TileBoard      string    `json:"tile_board"`
+	GID            GameID         `json:"gid"`
+	Board          string         `json:"board"`
+	Turn           string         `json:"turn"`
+	Winner         string         `json:"winner"`
+	MoveHistory    []CellPosition `json:"move_history"`
+	AvailableMoves []CellPosition `json:"available_moves"`
+	State          GameState      `json:"state"`
+	TileBoard      string         `json:"tile_board"`
 }
 
 type GameSettings struct{}
@@ -97,3 +97,10 @@ const (
 	TIE  GameWinner = "T"
 	NONE GameWinner = "."
 )
+
+type CellPosition string
+
+type Move struct {
+	Cell   CellPosition `json:"cell"`
+	Symbol string       `json:"symbol"`
+}

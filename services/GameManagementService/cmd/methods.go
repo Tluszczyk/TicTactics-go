@@ -47,9 +47,6 @@ func HandleRequest(request messageTypes.Request) (messageTypes.Response, error) 
 	case "PUT":
 		return handlePutRequest(databaseService, request)
 
-	case "DELETE":
-		return handleDeleteRequest(databaseService, request)
-
 	default:
 		return messageTypes.Response{
 			StatusCode: http.StatusMethodNotAllowed,
@@ -304,8 +301,8 @@ func handlePutRequest(databaseService database.DatabaseService, request messageT
 	case "/game/leaveAll":
 		return handleLeaveAllRequest(databaseService, request)
 
-	case "/game":
-		return handleUpdateRequest(databaseService, request)
+	case "/game/move":
+		return handlePutMoveRequest(databaseService, request)
 
 	default:
 		return messageTypes.Response{
@@ -514,20 +511,107 @@ func handleLeaveAllRequest(databaseService database.DatabaseService, request mes
 	}, nil
 }
 
-func handleUpdateRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
-	log.Info("Started Update")
+func handlePutMoveRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
+	log.Info("Started handlePutMoveRequest")
+
+	// Get environment variables
+	tableNames, status, err := utils.GetEnvironmentVariables("GAMES_TABLE_NAME", "USER_GAME_MAPPING_TABLE_NAME")
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: int(status.Code),
+			Body:       CreateGameResponse{Status: status},
+		}, err
+	}
+
+	gamesTableName, userGameMappingTable := tableNames[0], tableNames[1]
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var putMoveRequest PutMoveRequest
+	err = messageTypes.ParseRequestBody(request.Body, &putMoveRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: PutMoveResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Parsed request body")
+
+	// Does user play in this game
+	plays, err := DoesThisUserPlayInThisGame(databaseService, userGameMappingTable, putMoveRequest.Session.UID, putMoveRequest.GID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: PutMoveResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error checking if user plays in this game",
+				},
+			},
+		}, err
+	}
+
+	if !plays {
+		return messageTypes.Response{
+			StatusCode: http.StatusForbidden,
+			Body: PutMoveResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusForbidden,
+					Message: "User does not play in this game",
+				},
+			},
+		}, nil
+	}
+
+	// Create move
+	move, err := CreateMove(databaseService, userGameMappingTable, putMoveRequest.Session.UID, putMoveRequest.GID, putMoveRequest.Move)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: PutMoveResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error creating move",
+				},
+			},
+		}, err
+	}
+
+	// Put move
+	err = PutMove(databaseService, gamesTableName, putMoveRequest.GID, move)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: PutMoveResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error putting move",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Put move")
 
 	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
-	}, nil
-}
-
-func handleDeleteRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
-	log.Info("Started Delete")
-
-	return messageTypes.Response{
-		StatusCode: http.StatusNotImplemented,
-		Body:       "Not implemented",
+		StatusCode: http.StatusOK,
+		Body: PutMoveResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "Move put",
+			},
+		},
 	}, nil
 }

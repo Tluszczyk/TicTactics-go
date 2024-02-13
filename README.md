@@ -70,39 +70,39 @@ Below is a description of the components of the service.
 ### 🚀 API 
 It will be deployed as a REST API with the following endpoint groups:
 
-| Endpoint | Description               | Progress                        |
-|----------|---------------------------|---------------------------------|
-| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/100)|
-| `/user`  | User management endpoints |![](https://progress-bar.dev/100)|
-| `/game`  | Game management endpoints |![](https://progress-bar.dev/86) |
+| Endpoint | Description               | Implemented                     | Covered by tests                |
+|----------|---------------------------|---------------------------------|---------------------------------|
+| `/auth`  | Authentication endpoints  |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/user`  | User management endpoints |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/game`  | Game management endpoints |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
 
 #### Authentication Endpoints
 
-| Endpoint         | Method | Description        | Progress                        |              
-|------------------|------  |--------------------|---------------------------------|
-| `/auth/session`  | GET    | Validate a session |![](https://progress-bar.dev/100)|
-|                  | POST   | Create a session   |![](https://progress-bar.dev/100)|
-|                  | DELETE | Remove session     |![](https://progress-bar.dev/100)|
+| Endpoint         | Method | Description        | Implemented                     | Covered by tests                |              
+|------------------|------  |--------------------|---------------------------------|---------------------------------|
+| `/auth/session`  | GET    | Validate a session |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+|                  | POST   | Create a session   |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+|                  | DELETE | Remove session     |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
 
 #### User Management Endpoints
 
-| Endpoint | Method | Description      | Progress                        |
-|----------|------  |------------------|---------------------------------|
-| `/user`  | GET    | Get a user       |![](https://progress-bar.dev/100)|
-|          | POST   | Create a user    |![](https://progress-bar.dev/100)|
-|          | DELETE | Delete a user    |![](https://progress-bar.dev/100)|
+| Endpoint | Method | Description      | Implemented                     | Covered by tests                |
+|----------|------  |------------------|---------------------------------|---------------------------------|
+| `/user`  | GET    | Get a user       |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+|          | POST   | Create a user    |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+|          | DELETE | Delete a user    |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
 
 #### Game Management Endpoints
 
-| Endpoint           | Method | Description      | Progress                        |
-|--------------------|--------|------------------|---------------------------------|
-| `/game/create`     | POST   | Create a game    |![](https://progress-bar.dev/100)|
-| `/game/join`       | PUT    | Join a game      |![](https://progress-bar.dev/100)|
-| `/game/leave`      | PUT    | Leave a game     |![](https://progress-bar.dev/100)|
-| `/game/leaveAll`   | PUT    | Leave all games  |![](https://progress-bar.dev/100)|
-| `/game/listGames`  | GET    | List games       |![](https://progress-bar.dev/100)|
-| `/game`            | GET    | Get a game       |![](https://progress-bar.dev/100)|
-|                    | PUT    | Update a game    |![](https://progress-bar.dev/0)  |
+| Endpoint           | Method | Description      | Implemented                     | Covered by tests                |
+|--------------------|--------|------------------|---------------------------------|---------------------------------|
+| `/game/create`     | POST   | Create a game    |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/game/join`       | PUT    | Join a game      |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/game/leave`      | PUT    | Leave a game     |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/game/leaveAll`   | PUT    | Leave all games  |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/game/listGames`  | GET    | List games       |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/game`            | GET    | Get a game       |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
+| `/game/move`       | PUT    | Put a move       |![](https://progress-bar.dev/100)|![](https://progress-bar.dev/0)  |
 
 ### 💾 Database
 #### <img src="https://static.vecteezy.com/system/resources/previews/029/345/981/non_2x/database-icon-data-analytics-icon-monitoring-big-data-analysis-containing-database-free-png.png" alt="" height="20em"/> Schema ![](https://progress-bar.dev/100)
@@ -219,3 +219,8 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 
 ## Testing *In progress* 
 ![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)
+
+* Unit tests
+* Integration tests
+* Deploymemnt tests
+* Automated tests

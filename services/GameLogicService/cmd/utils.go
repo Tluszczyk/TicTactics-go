@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"services/lib/types"
 )
 
@@ -58,23 +59,23 @@ func (gameLogicService GameLogicService) GetDefaultGameSettings() types.GameSett
 	return types.GameSettings{}
 }
 
-func getCellPosition(cellID string) (int, int) {
+func getCellPosition(cellID types.CellPosition) (int, int) {
 	return int(cellID[0]) - 65, int(cellID[1]) - 49
 }
 
-func (cell Cell) GetID() string {
-	return string(rune(cell.Row+65)) + string(rune(cell.Col+49))
+func (tile Tile) GetCellID(cell Cell) types.CellPosition {
+	return types.CellPosition(string(rune(3*tile.Row + cell.Row + 65)) + string(rune(3*tile.Col + cell.Col + 49)))
 }
 
-func getAllFreeCells(board Board) []string {
-	freeCells := []string{}
+func getAllFreeCells(board Board) []types.CellPosition {
+	freeCells := []types.CellPosition{}
 
 	for _, tileRow := range board.Body {
 		for _, tile := range tileRow {
 			for _, cellRow := range tile.Body {
 				for _, cell := range cellRow {
 					if cell.Body == Empty {
-						freeCells = append(freeCells, cell.GetID())
+						freeCells = append(freeCells, tile.GetCellID(cell))
 					}
 				}
 			}
@@ -84,8 +85,8 @@ func getAllFreeCells(board Board) []string {
 	return freeCells
 }
 
-func getTileAvailableMoves(tile Tile, lastTileRow int, lastTileCol int) []string {
-	freeCells := []string{}
+func getTileAvailableMoves(tile Tile, lastTileRow int, lastTileCol int) []types.CellPosition {
+	freeCells := []types.CellPosition{}
 
 	for row, cellRow := range tile.Body {
 		for col, cell := range cellRow {
@@ -94,7 +95,7 @@ func getTileAvailableMoves(tile Tile, lastTileRow int, lastTileCol int) []string
 			}
 
 			if cell.Body == Empty {
-				freeCells = append(freeCells, cell.GetID())
+				freeCells = append(freeCells, tile.GetCellID(cell))
 			}
 		}
 	}
@@ -250,9 +251,57 @@ func (gameLogicService GameLogicService) UpdateGameState(game *types.Game) {
 	}
 }
 
+func (gameLogicService GameLogicService) UpdateTurn(game *types.Game) {
+	if game.State == types.IN_PROGRESS {
+		if game.Turn == string(types.X) {
+			game.Turn = string(types.O)
+		} else {
+			game.Turn = string(types.X)
+		}
+	}
+}
+
 func (gameLogicService GameLogicService) UpdateGame(game *types.Game) {
 	gameLogicService.UpdateAvailableMoves(game)
 	gameLogicService.UpdateTileBoard(game)
 	gameLogicService.UpdateWinner(game)
 	gameLogicService.UpdateGameState(game)
+	gameLogicService.UpdateTurn(game)
+}
+
+func (gameLogicService GameLogicService) CanPutMove(game *types.Game, move types.Move) (bool, error) {
+	if game.Turn != move.Symbol {
+		return false, fmt.Errorf("it's not %s's turn", move.Symbol)
+	}
+
+	if game.State != types.IN_PROGRESS {
+		return false, fmt.Errorf("the game is not in progress")
+	}
+
+	if len(game.AvailableMoves) == 0 {
+		return false, fmt.Errorf("there are no available moves")
+	}
+
+	for _, availableMove := range game.AvailableMoves {
+		if availableMove == move.Cell {
+			return true, nil
+		}
+	}
+
+	return false, fmt.Errorf("the cell is not available")
+}
+
+func (gameLogicService GameLogicService) PutMove(game *types.Game, move types.Move) {
+	board := gameLogicService.DeserializeBoard(game.Board)
+
+	cellRow, cellCol := getCellPosition(move.Cell)
+
+	tileRow, tileCol := cellRow/3, cellCol/3
+
+	board.Body[tileRow][tileCol].Body[cellRow%3][cellCol%3].Body = CellValue(move.Symbol)
+
+	game.Board = gameLogicService.SerializeBoard(board)
+	game.MoveHistory = append(game.MoveHistory, move.Cell)
+
+	gameLogicService.UpdateGame(game)
 }

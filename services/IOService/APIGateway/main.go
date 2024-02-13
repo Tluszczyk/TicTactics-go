@@ -108,7 +108,7 @@ func main() {
 	router.PUT("/game/leave", handlerMonad(gameManagement.HandleRequest, true))
 	router.PUT("/game/leaveAll", handlerMonad(gameManagement.HandleRequest, true))
 	router.GET("/game", handlerMonad(gameManagement.HandleRequest, true))
-	router.PUT("/game", handlerMonad(gameManagement.HandleRequest, true))
+	router.PUT("/game/move", handlerMonad(gameManagement.HandleRequest, true))
 	router.GET("/game/listGames", handlerMonad(gameManagement.HandleRequest, true))
 
 	router.Run(":8080")
