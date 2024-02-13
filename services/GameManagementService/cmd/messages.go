@@ -31,6 +31,14 @@ type LeaveGameResponse struct {
 	Status types.Status `json:"status"`
 }
 
+type LeaveAllGamesRequest struct {
+	Session types.Session `json:"session"`
+}
+
+type LeaveAllGamesResponse struct {
+	Status types.Status `json:"status"`
+}
+
 type GetGameRequest struct {
 	Session types.Session `json:"session"`
 	GID     types.GameID  `json:"gid"`

@@ -43,6 +43,9 @@ func HandleRequest(request messageTypes.Request) (response messageTypes.Response
 	case "POST":
 		return handlePostRequest(databaseService, request)
 
+	case "DELETE":
+		return handleDeleteRequest(databaseService, request)
+
 	default:
 		return messageTypes.Response{
 			Body:       "Method not allowed",
@@ -221,6 +224,106 @@ func handlePostRequest(databaseService database.DatabaseService, request message
 			Status: messageTypes.Status{
 				Code:    http.StatusOK,
 				Message: "User created",
+			},
+		},
+	}, nil
+}
+
+func handleDeleteRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
+	log.Info("Started HandleDELETERequest")
+
+	// Get environment variables
+	tableNames, status, err := utils.GetEnvironmentVariables(
+		"USERS_TABLE_NAME",
+		"PASSWORD_HASHES_TABLE_NAME", "USER_PASSWORD_HASH_MAPPING_TABLE_NAME",
+		"GAMES_TABLE_NAME", "USER_GAME_MAPPING_TABLE_NAME",
+	)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: int(status.Code),
+			Body:       DeleteUserResponse{Status: status},
+		}, err
+	}
+
+	usersTableName, passwordHashesTableName, userPasswordHashMappingTable, gamesTableName, userGameMappingTableName := tableNames[0], tableNames[1], tableNames[2], tableNames[3], tableNames[4]
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var deleteUserRequest DeleteUserRequest
+	err = messageTypes.ParseRequestBody(request.Body, &deleteUserRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: DeleteUserResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Parsed request body")
+
+	// Leave all games
+	err = LeaveAllGames(databaseService, gamesTableName, userGameMappingTableName, usersTableName, deleteUserRequest.Session.UID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: DeleteUserResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error leaving all games",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Left all games")
+
+	// Delete user
+	err = DeleteUser(databaseService, usersTableName, deleteUserRequest.Session.UID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: DeleteUserResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error deleting user",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Deleted user")
+
+	err = DeletePassword(databaseService, userPasswordHashMappingTable, passwordHashesTableName, deleteUserRequest.Session.UID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: DeleteUserResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error deleting user password",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Deleted user password")
+
+	return messageTypes.Response{
+		StatusCode: http.StatusOK,
+		Body: DeleteUserResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "User deleted",
 			},
 		},
 	}, nil

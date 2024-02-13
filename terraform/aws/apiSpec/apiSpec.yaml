@@ -327,6 +327,41 @@ paths:
                 timeoutInMillis: 29000
                 passthroughBehavior: "when_no_match"
                 type: "aws_proxy"
+    /game/leaveAll:
+        put:
+            tags:
+            - game
+            summary: Leave all games
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LeaveAllGamesRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaveAllGamesResponse'
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaveAllGamesResponse'
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaveAllGamesResponse'
+            x-amazon-apigateway-integration:
+                uri: ${game_management_lambda_uri}
+                httpMethod: "POST"
+                timeoutInMillis: 29000
+                passthroughBehavior: "when_no_match"
+                type: "aws_proxy"
     /game:
         get:
             tags:
@@ -635,6 +670,20 @@ components:
             description: Leave game request
         
         LeaveGameResponse:
+            type: object
+            properties:
+                Status:
+                    $ref: '#/components/schemas/Status'
+            description: Leave game response
+
+        LeaveAllGamesRequest:
+            type: object
+            properties:
+                session:
+                    $ref: '#/components/schemas/Session'
+            description: Leave game request
+        
+        LeaveAllGamesResponse:
             type: object
             properties:
                 Status:

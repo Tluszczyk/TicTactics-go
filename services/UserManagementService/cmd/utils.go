@@ -3,7 +3,8 @@ package cmd
 import (
 	"services/lib/log"
 
-	
+	GameManagementService "services/GameManagementService/cmd"
+
 	"services/DatabaseService/database"
 	databaseErrors "services/DatabaseService/database/errors"
 	databaseTypes "services/DatabaseService/database/types"
@@ -49,8 +50,8 @@ func CreateUser(databaseService database.DatabaseService, usersTableName string,
 	log.Info("Save password hash")
 	// Save password hash
 	item := databaseTypes.DatabaseItem{
-		PK:         map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: hashID},
-		SK:			map[databaseTypes.FieldType]interface{}{databaseTypes.PASSWORD_HASH: credentials.PasswordHash},
+		PK: map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: hashID},
+		SK: map[databaseTypes.FieldType]interface{}{databaseTypes.PASSWORD_HASH: credentials.PasswordHash},
 	}
 
 	log.Info("Put password hash item in the database")
@@ -138,4 +139,89 @@ func GetUser(databaseService database.DatabaseService, usersTableName string, us
 	}
 
 	return user, nil
+}
+
+// DeleteUser deletes a user from the database
+func DeleteUser(databaseService database.DatabaseService, usersTableName string, uid messageTypes.UserID) error {
+	log.Info("Started DeleteUser")
+
+	// Delete user
+	deleteItemInput := databaseTypes.DatabaseDeleteItemInput{
+		TableName: usersTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		},
+	}
+
+	_, err := databaseService.DeleteItemFromDatabase(&deleteItemInput)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeletePassword user password
+func DeletePassword(databaseService database.DatabaseService, userPasswordHashMappingTable string, passwordHashesTableName string, uid messageTypes.UserID) error {
+	log.Info("Started DeletePassword")
+
+	// Get hash_id
+	getItemInput := databaseTypes.DatabaseGetItemInput{
+		TableName: userPasswordHashMappingTable,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		},
+	}
+
+	item, err := databaseService.GetItemFromDatabase(&getItemInput)
+
+	if err != nil {
+		return err
+	}
+
+	hashID := item.Item.SK[databaseTypes.HASH_ID].(string)
+
+	// Delete user password hash mapping
+	deleteItemInput := databaseTypes.DatabaseDeleteItemInput{
+		TableName: userPasswordHashMappingTable,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		},
+	}
+
+	_, err = databaseService.DeleteItemFromDatabase(&deleteItemInput)
+
+	if err != nil {
+		return err
+	}
+
+	// Delete password hash
+	deleteItemInput = databaseTypes.DatabaseDeleteItemInput{
+		TableName: passwordHashesTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.HASH_ID: hashID},
+		},
+	}
+
+	_, err = databaseService.DeleteItemFromDatabase(&deleteItemInput)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Leave all games
+func LeaveAllGames(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, usersTableName string, uid messageTypes.UserID) error {
+	log.Info("Started LeaveAllGames")
+	
+	err := GameManagementService.LeaveAllGames(databaseService, gamesTableName, userGameMappingTableName, usersTableName, uid)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

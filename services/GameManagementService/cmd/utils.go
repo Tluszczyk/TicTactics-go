@@ -267,6 +267,42 @@ func LeaveGame(databaseService database.DatabaseService, gamesTableName string, 
 	return nil
 }
 
+func LeaveAllGames(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, usersTableName string, uid messageTypes.UserID) error {
+	log.Info("Started LeaveAllGames")
+
+	// Get games
+	log.Info("Get games")
+
+	gamesOutput, err := databaseService.GetItemsFromDatabase(&databaseTypes.DatabaseGetItemsInput{
+		TableName: userGameMappingTableName,
+		Key: databaseTypes.DatabaseItem{
+			PK: map[databaseTypes.FieldType]interface{}{databaseTypes.UID: uid},
+		},
+	})
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting games: %v", err))
+		return err
+	}
+
+	// Leave games
+	log.Info("Leave games")
+
+	for _, item := range gamesOutput.Items {
+		gid := messageTypes.GameID(item.SK[databaseTypes.GID].(string))
+
+		err = LeaveGame(databaseService, gamesTableName, userGameMappingTableName, usersTableName, uid, gid)
+
+		if err != nil {
+			log.Error(fmt.Sprintf("Error leaving game: %v", err))
+			return err
+		}
+	}
+
+	log.Info("Finished LeaveAllGames")
+	return nil
+}
+
 func ConcludeGame(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, usersTableName string, gid messageTypes.GameID, endState messageTypes.GameWinner) error {
 	log.Info("Started ConcludeGame")
 

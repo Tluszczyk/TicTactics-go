@@ -217,6 +217,9 @@ func handlePutRequest(databaseService database.DatabaseService, request messageT
 	case "/game/leave":
 		return handleLeaveRequest(databaseService, request)
 
+	case "/game/leaveAll":
+		return handleLeaveAllRequest(databaseService, request)
+
 	case "/game":
 		return handleUpdateRequest(databaseService, request)
 
@@ -310,7 +313,7 @@ func handleLeaveRequest(databaseService database.DatabaseService, request messag
 	if err != nil {
 		return messageTypes.Response{
 			StatusCode: int(status.Code),
-			Body:       CreateGameResponse{Status: status},
+			Body:       LeaveGameResponse{Status: status},
 		}, err
 	}
 
@@ -359,6 +362,69 @@ func handleLeaveRequest(databaseService database.DatabaseService, request messag
 			Status: messageTypes.Status{
 				Code:    http.StatusOK,
 				Message: "Game left",
+			},
+		},
+	}, nil
+}
+
+func handleLeaveAllRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
+	log.Info("Started LeaveAll")
+	
+	// Get environment variables
+	tableNames, status, err := utils.GetEnvironmentVariables("GAMES_TABLE_NAME", "USER_GAME_MAPPING_TABLE_NAME", "USERS_TABLE_NAME")
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: int(status.Code),
+			Body:       LeaveAllGamesResponse{Status: status},
+		}, err
+	}
+
+	gamesTableName, userGameMappingTable, usersTableName := tableNames[0], tableNames[1], tableNames[2]
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var leaveAllGamesRequest LeaveAllGamesRequest
+	err = messageTypes.ParseRequestBody(request.Body, &leaveAllGamesRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: LeaveAllGamesResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Parsed request body")
+
+	// Leave game
+	err = LeaveAllGames(databaseService, gamesTableName, userGameMappingTable, usersTableName, leaveAllGamesRequest.Session.UID)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: LeaveAllGamesResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error leaving game",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Left all games")
+
+	return messageTypes.Response{
+		StatusCode: http.StatusOK,
+		Body: LeaveAllGamesResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "All games left",
 			},
 		},
 	}, nil

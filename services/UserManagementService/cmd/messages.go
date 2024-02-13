@@ -13,10 +13,19 @@ type CreateUserResponse struct {
 }
 
 type GetUserRequest struct {
-	Username string `json:"username"`
+	Session  types.Session `json:"session"`
+	Username string        `json:"username"`
 }
 
 type GetUserResponse struct {
 	Status types.Status `json:"status"`
 	User   types.User   `json:"user"`
+}
+
+type DeleteUserRequest struct {
+	Session  types.Session `json:"session"`
+}
+
+type DeleteUserResponse struct {
+	Status types.Status `json:"status"`
 }
