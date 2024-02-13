@@ -61,6 +61,26 @@ func HandleRequest(request messageTypes.Request) (messageTypes.Response, error) 
 func handleGetRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
 	log.Info("Started Get")
 
+	log.Info(fmt.Sprintf("Request path: %s", request.Path))
+
+	switch request.Path {
+	case "/game":
+		return handleGetGameRequest(databaseService, request)
+
+	case "/game/listGames":
+		return handleListGamesRequest(databaseService, request)
+
+	default:
+		return messageTypes.Response{
+			StatusCode: http.StatusNotFound,
+			Body:       "Not found",
+		}, nil
+	}
+}
+
+func handleGetGameRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
+	log.Info("Started GetGameRequest")
+
 	// Get environment variables
 	tableNames, status, err := utils.GetEnvironmentVariables("GAMES_TABLE_NAME")
 
@@ -128,6 +148,70 @@ func handleGetRequest(databaseService database.DatabaseService, request messageT
 				Message: "Game found",
 			},
 			Game: game,
+		},
+	}, nil
+}
+
+func handleListGamesRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
+	log.Info("Started ListGamesRequest")
+
+	// Get environment variables
+	tableNames, status, err := utils.GetEnvironmentVariables("GAMES_TABLE_NAME", "USER_GAME_MAPPING_TABLE_NAME")
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: int(status.Code),
+			Body:       ListGamesResponse{Status: status},
+		}, err
+	}
+
+	gamesTableName, userGameMappingTable := tableNames[0], tableNames[1]
+
+	log.Info("Got environment variables")
+
+	// Parse request body
+	var listGamesRequest ListGamesRequest
+	err = messageTypes.ParseRequestBody(request.Body, &listGamesRequest)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusBadRequest,
+			Body: ListGamesResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusBadRequest,
+					Message: "Error parsing request body",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Parsed request body")
+
+	// List games
+	games, err := ListGames(databaseService, gamesTableName, userGameMappingTable, listGamesRequest.Filter)
+
+	if err != nil {
+		return messageTypes.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body: ListGamesResponse{
+				Status: messageTypes.Status{
+					Code:    http.StatusInternalServerError,
+					Message: "Error listing games",
+				},
+			},
+		}, err
+	}
+
+	log.Info("Listed games")
+
+	return messageTypes.Response{
+		StatusCode: http.StatusOK,
+		Body: ListGamesResponse{
+			Status: messageTypes.Status{
+				Code:    http.StatusOK,
+				Message: "Games listed",
+			},
+			Games: games,
 		},
 	}, nil
 }
@@ -369,7 +453,7 @@ func handleLeaveRequest(databaseService database.DatabaseService, request messag
 
 func handleLeaveAllRequest(databaseService database.DatabaseService, request messageTypes.Request) (messageTypes.Response, error) {
 	log.Info("Started LeaveAll")
-	
+
 	// Get environment variables
 	tableNames, status, err := utils.GetEnvironmentVariables("GAMES_TABLE_NAME", "USER_GAME_MAPPING_TABLE_NAME", "USERS_TABLE_NAME")
 

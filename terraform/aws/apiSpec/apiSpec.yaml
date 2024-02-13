@@ -431,7 +431,7 @@ paths:
                 timeoutInMillis: 29000
                 passthroughBehavior: "when_no_match"
                 type: "aws_proxy"
-    /game/list-games:
+    /game/listGames:
         get:
             tags:
             - game
@@ -598,10 +598,6 @@ components:
             properties:
                 gid:
                     type: string
-                uid1:
-                    type: string
-                uid2:
-                    type: string
                 board:
                     type: string
                 turn:
@@ -609,8 +605,12 @@ components:
                 winner:
                     type: string
                 moveHistory:
-                    type: string
+                    type: array
                 availableMoves:
+                    type: array
+                state:
+                    type: string
+                tileBoard:
                     type: string
 
         GameSettings:
@@ -619,13 +619,13 @@ components:
         GamesFilter:
             type: object
             properties:
-                OPlayerUsername:
-                    type: string
-                XPlayerUsername:
+                uid:
                     type: string
                 turn:
                     type: string
                 winner:
+                    type: string
+                state:
                     type: string
 
         CreateGameRequest:

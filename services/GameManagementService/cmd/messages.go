@@ -48,3 +48,13 @@ type GetGameResponse struct {
 	Status types.Status `json:"status"`
 	Game   types.Game   `json:"game"`
 }
+
+type ListGamesRequest struct {
+	Session types.Session    `json:"session"`
+	Filter  types.GameFilter `json:"filter"`
+}
+
+type ListGamesResponse struct {
+	Status types.Status `json:"status"`
+	Games  []types.Game `json:"games"`
+}

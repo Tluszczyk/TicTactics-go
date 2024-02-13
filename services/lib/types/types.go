@@ -77,10 +77,16 @@ type Game struct {
 type GameSettings struct{}
 
 type GameFilter struct {
-	OPlayerUsername string `json:"oplayer_username"`
-	XPlayerUsername string `json:"xplayer_username"`
-	Turn            string `json:"turn"`
-	Winner          string `json:"winner"`
+	UID    UserID    `json:"uid"`
+	Turn   string    `json:"turn"`
+	Winner string    `json:"winner"`
+	State  GameState `json:"state"`
+}
+
+func (filter *GameFilter) Check(game Game) bool {
+	return ((filter.State == "" || filter.State == game.State) &&
+		(filter.Winner == "" || filter.Winner == game.Winner) &&
+		(filter.Turn == "" || filter.Turn == game.Turn))
 }
 
 type GameWinner string

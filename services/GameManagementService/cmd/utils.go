@@ -175,6 +175,56 @@ func GetGame(databaseService database.DatabaseService, gamesTableName string, gi
 	return game, nil
 }
 
+func ListGames(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, filter messageTypes.GameFilter) ([]messageTypes.Game, error) {
+	log.Info("Started ListGames")
+
+	// Get games
+	log.Info("Get games")
+
+	getGamesFilter := databaseTypes.DatabaseGetItemsInput{
+		TableName: userGameMappingTableName,
+		Key:       databaseTypes.DatabaseItem{},
+	}
+
+	if filter.UID != "" {
+		getGamesFilter.Key.PK = map[databaseTypes.FieldType]interface{}{databaseTypes.UID: filter.UID}
+	}
+
+	gamesOutput, err := databaseService.GetItemsFromDatabase(&getGamesFilter)
+
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting games: %v", err))
+		return nil, err
+	}
+
+	// Get games IDs
+	gamesIDs := map[messageTypes.GameID]bool{}
+
+	for _, item := range gamesOutput.Items {
+		gid := messageTypes.GameID(item.SK[databaseTypes.GID].(string))
+		gamesIDs[gid] = true
+	}
+
+	// Filter games
+	games := []messageTypes.Game{}
+
+	for gid := range gamesIDs {
+		game, err := GetGame(databaseService, gamesTableName, gid)
+
+		if err != nil {
+			log.Error(fmt.Sprintf("Error getting game: %v", err))
+			return nil, err
+		}
+
+		if filter.Check(game) {
+			games = append(games, game)
+		}
+	}
+
+	log.Info("Finished ListGames")
+	return games, nil
+}
+
 func LeaveGame(databaseService database.DatabaseService, gamesTableName string, userGameMappingTableName string, usersTableName string, uid messageTypes.UserID, gid messageTypes.GameID) error {
 	log.Info("Started LeaveGame")
 
