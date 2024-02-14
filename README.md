@@ -217,6 +217,7 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 * GRPC connections
 * Archive for old games
 * Scale out MongoDB
+* Queueing requests & backpressure strategies
 
 ## Testing *In progress* 
 ![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)
