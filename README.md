@@ -212,6 +212,7 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 * Remove body from GET and DELETE
 * Remove UID from session and send only token
 * Send session tokens in headers
+* Auth token is JWT
 * Implement request handler monad 
 * Abstract services to work as executors
 
