@@ -220,6 +220,7 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 * Queueing requests & backpressure strategies
 * Implement refresh token
 * Send session tokens in headers
+* Remove UID from session and send only token
 * Remove body from GET and DELETE
 
 ## Testing *In progress* 
