@@ -208,6 +208,13 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
     <img src="documentation/resources/K8sDeploymentOption.svg" alt=""/>
 </div>
 
+## Refactoring Ideas
+* Remove body from GET and DELETE
+* Remove UID from session and send only token
+* Send session tokens in headers
+* Implement request handler monad 
+* Abstract services to work as executors
+
 ## Ideas for the future
 * AI for the game
 * Authentication cache
@@ -219,9 +226,6 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 * Scale out MongoDB
 * Queueing requests & backpressure strategies
 * Implement refresh token
-* Send session tokens in headers
-* Remove UID from session and send only token
-* Remove body from GET and DELETE
 
 ## Testing *In progress* 
 ![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)
