@@ -12,6 +12,7 @@ import (
 	userManagement "services/UserManagementService/cmd"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 func authenticator(req types.Request) (types.Response, error) {
@@ -91,6 +92,12 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 
 	router := gin.Default()
+
+	// Enable CORS
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	router.Use(cors.New(config))
 
 	// Authentication Service
 	router.GET("/auth/session", handlerMonad(auth.HandleRequest, false))
