@@ -227,6 +227,7 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 * Scale out MongoDB
 * Queueing requests & backpressure strategies
 * Implement refresh token
+* Replace JSON with some better format i.e. Protobuf or sth
 
 ## Testing *In progress* 
 ![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)
