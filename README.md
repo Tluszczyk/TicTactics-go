@@ -230,6 +230,7 @@ The API will be deployed as a REST API, services will be deployed as a pod in a 
 * Replace JSON with some better format i.e. Protobuf or sth
 * Log into log file & add Grafana observability
 * Implement possibility to integrate with third party authentication tools like firebase or supabase
+* Validate moves on client and only double check on server in case of an inconsistency
 
 ## Testing *In progress* 
 ![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)
