@@ -1,5 +1,7 @@
 ![Coverage](https://img.shields.io/badge/Coverage-67.25-yellow)
 
+**This approach to implementation quickly became tidious and demanding. I became weary with implementing all generic services like authorization service on my own. I stopped working on this project to implement it in a different tech stack (using Appwrite). You can find it in another repo**
+
 <div style="text-align:center; margin: 100px;">
     <img src="documentation/resources/logo.png" alt=""/>
 </div>
